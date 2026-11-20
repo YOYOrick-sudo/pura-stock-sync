@@ -1,34 +1,45 @@
-# Alleen de 43 geselecteerde toegangsproblemen herstellen
+# Eilandbezorger -> Lightspeed L-Series: beveiligde bestelkoppeling
 
-## Praktijk en afbakening
-Dit is een wijziging van database-toegang (RLS), niet van schermen. De wijziging geldt direct voor zowel preview als live, ook zonder Publish.
+## Wat het doet (in de praktijk)
+Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, controleren hem (vestiging, producten, extra's, bedragen, betaalwijze) en sturen hem pas door naar de kassa van Midsland of West als echte verzending aan staat. Standaard staat alles in testmodus: er gaat niets naar Lightspeed. Managers zien op een overzichtspagina welke bestellingen binnen zijn, wat afgekeurd is en waarom.
 
-Alleen de 43 geselecteerde meldingen en de daarbij genoemde brede regels worden aangepakt. Andere meldingen worden niet gewijzigd of genegeerd. Geen wijzigingen aan koppelingen, printeraansturing, wachtrij, taakberekeningen of historische gegevens.
+Wat er gebeurt als het misgaat:
+- Dubbel verstuurd door Eilandbezorger: herkend op hun bestelnummer, geen tweede kassabon.
+- Lightspeed traag of fout: bestelling blijft staan als "fout", zichtbaar in het overzicht, opnieuw proberen met de hand. Geen automatische herhaling naar de kassa (risico op dubbele keukenbon).
+- Onbekend product of afwijkend bedrag: afgekeurd met reden, Eilandbezorger krijgt dat direct terug.
 
-## Voorgestelde toegang
-- **Gegevens met een vestiging:** gebruik de bestaande `fase2_mag_vestiging`-controle. Teamleden zien hun eigen vestiging; eigenaar/admin behoudt beide vestigingen en Test. Telregels volgen de vestiging van hun telronde; orderregels die van hun order.
-- **Tellingen en dagelijkse handelingen:** schrijven blijft mogelijk voor bevoegde medewerkers van de betreffende vestiging. Instellingen, openingsdagen, sluitdatums, MEP-templates en taakcategoriebeheer mogen alleen managers van die vestiging of eigenaar/admin wijzigen.
-- **Gedeelde artikel-, gerecht-, recept- en allergenengegevens:** lezen vereist een actieve rol in `user_roles`, niet alleen een ingelogd account. Gedeelde gegevens blijven beschikbaar voor beide locaties. Waar volledige rijen ook inkoopprijzen of kostprijzen bevatten (Horeko en leverancier-artikelen), wordt rechtstreeks lezen beperkt tot manager/eigenaar; geen kostprijsgegevens naar keukentablets.
-- **Artikelstam wijzigen:** alleen manager/eigenaar. Recepten en ingrediënten wijzigen blijft mogelijk voor medewerkers met toegang tot de bijbehorende receptlocatie, inclusief gedeelde recepten; accounts zonder actieve rol worden geweigerd.
-- **Inkooporders en -regels:** rechtstreeks lezen/schrijven vereist de bestaande `is_inkoop_beheerder`-controle én toegang tot de vestiging. Hiermee worden ook financiële velden afgeschermd.
-- **Prijswaarnemingen:** alleen manager/eigenaar met toegang tot de vestiging.
-- **Personeelslocaties en teams:** beheer alleen manager/eigenaar. Lezen van deze keuzelijsten blijft mogelijk voor accounts met een actieve rol, zodat bestaande medewerkersschermen niet hun namenlijsten verliezen; er worden geen persoonlijke personeelsdossiers ontsloten.
-- **Onderhoudstickets en opmerkingen:** lezen alleen voor bevoegde accounts van de ticketvestiging; opmerkingen volgen het ticket.
-- **Printjobs:** lezen alleen binnen de eigen vestiging. NULL blijft voor lezen bij West horen, zoals de bestaande printerafspraak; aanmaken, claimen en printen blijven ongemoeid.
-- **Sticker-suggesties:** gedeelde lijst blijft leesbaar en bruikbaar voor accounts met een actieve rol; geen wijziging van printgedrag.
+## Wat gebouwd wordt
+1. Ontvangfunctie `eilandbezorger-bestelling` (server). Eigen sleutel voor Eilandbezorger in kop `x-eilandbezorger-sleutel`, vergeleken met nieuw geheim `EILANDBEZORGER_SLEUTEL` (jij vult het in via een invulveld; nooit in chat). Ook een statusopvraag op bestelnummer.
+2. Opslag: tabel `externe_bestellingen` (bestelnummer Eilandbezorger uniek per vestiging, ruwe invoer, gecontroleerde regels, status, foutreden, Lightspeed-antwoord, tijden) plus `externe_bestelling_log` voor statusgeschiedenis. Alleen leesbaar voor manager/eigenaar; schrijven alleen door de server. Niets wordt verwijderd.
+3. Productkoppeling: tabel `externe_product_koppeling` (vestiging, Eilandbezorger-code -> Lightspeed product-ID/PLU, verwachte prijs, toegestane extra's). Bestellingen met niet-gekoppelde producten worden afgekeurd. Vullen gebeurt later bewust door jullie.
+4. Controle: vestiging moet 36864 of 41121 zijn en een actieve koppeling hebben; producten en extra's gekoppeld; regelbedragen kloppen met koppelprijs (afwijking 1 cent toegestaan); totaal = som regels; betaalwijze moet "vooraf betaald" zijn.
+5. Doorsturen: aparte module die het L-Series orderbericht opbouwt (`POST /rest/onlineordering/customer/{customerId}/order`). Gebruikt hetzelfde tokenbeheer en dezelfde vergrendeling als de omzetophaling, zodat er nooit twee tokenvernieuwingen tegelijk lopen. De huidige callback en omzetophaling worden niet aangeraakt.
+6. Schakelaars: `eilandbezorger_live` per vestiging (bestaande Fase 2-vlaggen), standaard uit. Uit = testmodus: volledige controle en opslag, het orderbericht wordt opgebouwd en bewaard, maar niet verstuurd. Status wordt dan `test_ok`.
+7. Overzichtspagina `/cijfers/eilandbezorger` (alleen manager/eigenaar): compacte tabel met tijd, vestiging, bestelnummer, bedrag, één statuslabel; filter "Fout / onverwerkt"; detaillade met reden, regels en geschiedenis; knop "Opnieuw proberen" alleen bij fout en alleen als live aan staat.
+8. Aansluitinstructie voor Karin als document (ontvangadres, sleutel-methode, voorbeeldbestelling, statuscodes en wat te doen per status).
 
-## Concrete risico's vóór uitvoering
-- Een medewerker die vandaag rechtstreeks inkooporders bijwerkt, kan dat na afscherming niet meer. Bestellen en ontvangen moeten daarom expliciet met medewerkers- en managerrollen gecontroleerd worden.
-- Horeko-tabellen bevatten receptinformatie én kosten in dezelfde rij. Beperking tot managers kan bestaande recepten-/allergenenweergaven leeg maken. Controleer de afhankelijkheden vóór toepassing; als een medewerkersscherm deze bron rechtstreeks nodig heeft, stop en bespreek een veilige afgescheiden weergave in plaats van blind toegang te blokkeren.
-- De app deelt een database tussen preview en live. Een foute regel kan tijdens een dienst vertellen, instellingen wijzigen of historische printstatus tonen blokkeren. Geen nieuwe werkafspraak voor het team; ontbrekende actieve rollen moeten wel door een eigenaar worden hersteld.
-- Er worden geen gegevens verwijderd of herschreven. Historie groeit zoals nu; gesloten dagen, seizoenen en lopende bestellingen blijven behouden.
+## Statussen
+`ontvangen` -> `afgekeurd` (controle faalt) | `test_ok` (testmodus) | `verzenden` -> `verzonden` | `fout`.
+Antwoorden aan Eilandbezorger: 201 nieuw, 200 al bekend (zelfde status terug), 400 ongeldig, 401 sleutel fout, 422 afgekeurd met reden.
 
-## Technische uitvoering
-1. Controleer per geselecteerde tabel alle huidige policies en scherm-/RPC-afhankelijkheden. Bevestig de vestigingskolom of de koppeling naar de bovenliggende rij.
-2. Pas alleen de in de geselecteerde meldingen genoemde brede policies aan via één gerichte migratie. Gebruik bestaande rol- en vestigingsfuncties; voor gedeelde stamgegevens controleer een actieve rol server-side. Houd service-role-automatiseringen werkend.
-3. Controleer andere permissieve regels op dezelfde tabel om te voorkomen dat ze de nieuwe regels alsnog omzeilen. Als een niet-geselecteerde regel een noodzakelijke extra wijziging vereist, meld dit vóór een uitbreiding van de opdracht.
-4. Verifieer de daadwerkelijk gewijzigde policies in de database. Test anoniem, ingelogd zonder actieve rol, medewerker West/Midsland, manager en eigenaar, zonder echte bestellingen, tellingen of prints aan te maken; schrijfpaden alleen met rollback.
-5. Hercontroleer de geselecteerde problemen. Markeer alleen volledig herstelde geselecteerde meldingen als opgelost met `manage_security_finding`; andere meldingen blijven ongewijzigd.
+## Wat ik test
+- Unit-tests: controle (bedragen, onbekend product, extra's, betaalwijze, vestiging), dubbele aanlevering, opbouw orderbericht, statusbepaling.
+- Functietest: zonder sleutel 401; met sleutel een TEST-bestelling in testmodus -> `test_ok`, niets naar Lightspeed. Testregels krijgen TEST-nummer en worden pas na jouw OK opgeruimd.
+- Overzichtspagina ingelogd bekijken.
 
-## Oplevering
-Noem het aantal opgeloste en resterende geselecteerde meldingen, aantoonbaar geteste toegangen en eventuele niet-verifieerbare schermen. Geen frontendpublicatie. Eventuele nieuwe veilige gegevensweergaven vallen niet automatisch binnen deze opdracht.
+## Wat nog ontbreekt (blokkeert echte verzending, niet de bouw)
+- Bevestiging van Lightspeed welke orderroute bij onze accounts hoort (gewoon of establishment) en of onze koppeling bestelrechten heeft; onze autorisatie vraagt geen expliciete rechten aan.
+- Lightspeed klant-ID (of hoe een klant aangemaakt moet worden) per vestiging.
+- Betaalwijze-ID voor "vooraf betaald Eilandbezorger" per vestiging.
+- Actuele producten/PLU's en bezorgprijzen voor de koppeltabel.
+- Een gecontroleerde proefbestelling op de echte kassa, met iemand erbij die keukenbon en bedrag controleert.
+- Van Karin: haar bestelnummer-formaat, productcodes en hoe zij annuleringen en wijzigingen wil doen (die bouw ik nu niet; annuleren gebeurt in de kassa).
+
+## Technische details
+- Tokenlogica (`readConnection`, `getValidToken`, `refreshAtLightspeed`, lease `lightspeed`) wordt gekopieerd naar `supabase/functions/_shared/lightspeedToken.ts`; `lightspeed-sync` en `lightspeed-oauth` blijven byte-gelijk. Zelfde lease-bron, dus serialisatie met de omzetsync blijft gegarandeerd.
+- Sleutelvergelijking in constante tijd; sleutel nooit gelogd of teruggegeven. Zod-validatie, CORS, veilige foutmeldingen.
+- Uniek: (`vestiging`, `extern_id`); insert met conflictafhandeling. Overgang naar `verzenden` via atomaire update (`where status in ('ontvangen','fout')`) zodat twee aanroepen nooit tegelijk verzenden.
+- Ordermodule losgemaakt zodat veldnamen na Lightspeed-bevestiging op één plek aangepast worden; tot die bevestiging blijft de live-vlag uit.
+- RLS met `has_role` voor manager/owner/admin; GRANT alleen select voor authenticated, alles voor service_role.
+- Route toevoegen aan getPageTitle; pagina volgt Pura-lijstrecept en designregels.
+- Geen publicatie; functie wordt gedeployed omdat Karin anders niet kan testen.
