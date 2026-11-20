@@ -39,6 +39,7 @@ import MepDag from "./pages/kitchen/MepDag";
 import MepWeek from "./pages/kitchen/MepWeek";
 import MepInstellingen from "./pages/settings/MepInstellingen";
 import KetenBeheer from "./pages/settings/KetenBeheer";
+import Eilandbezorger from "./pages/cijfers/Eilandbezorger";
 import KoelwerkbankIndeling from "./pages/settings/KoelwerkbankIndeling";
 
 import MepBeheer from "./pages/kitchen/MepBeheer";
@@ -333,6 +334,7 @@ const App = () => {
             <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
             <Route path="/mt-punt" element={<ProtectedRoute><RequireMtLid><MtPunt /></RequireMtLid></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
+            <Route path="/cijfers/eilandbezorger" element={<ProtectedRoute><RequireManager><Eilandbezorger /></RequireManager></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
             <Route path="/settings/koelwerkbank" element={<ProtectedRoute><RequireManager><KoelwerkbankIndeling /></RequireManager></ProtectedRoute>} />
 

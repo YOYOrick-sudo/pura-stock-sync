@@ -1,13 +1,16 @@
 import { z } from 'npm:zod@3.23.8';
 
-export const VESTIGING_PER_MERCHANT: Record<string, string> = { '36864': 'Midsland', '41121': 'West' };
+// Voorlopig alleen Midsland (besluit Yorick 20-11-2026).
+export const VESTIGING_PER_MERCHANT: Record<string, string> = { '36864': 'Midsland' };
+export const Modus = z.enum(['test', 'live']);
 
 const iso = z.string().datetime({ offset: true });
 const cent = z.number().int().min(0).max(1_000_000);
 export const BestellingSchema = z.object({
   versie: z.literal(1),
+  modus: Modus,
   bestelnummer: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9._-]+$/),
-  vestiging: z.enum(['36864', '41121']),
+  vestiging: z.enum(['36864']),
   ophaaltijd: iso,
   bezorgtijd: iso.optional(),
   klant: z.object({ naam: z.string().trim().min(1).max(80), telefoon: z.string().trim().max(30).optional() }),
@@ -36,7 +39,8 @@ export type Bestelling = z.infer<typeof BestellingSchema>;
 
 export const OphaaltijdSchema = z.object({
   actie: z.literal('ophaaltijd'),
-  vestiging: z.enum(['36864', '41121']),
+  modus: Modus,
+  vestiging: z.enum(['36864']),
   bestelnummer: z.string().trim().min(1).max(64),
   ophaaltijd: iso,
   bezorgtijd: iso.optional(),

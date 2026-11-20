@@ -48,6 +48,7 @@ export function SidebarLayout({
       '/voorraad/stand': 'Voorraadstand',
       '/settings': 'Instellingen',
       '/cijfers': 'Cijfers',
+      '/cijfers/eilandbezorger': 'Eilandbezorger',
       '/taken-analyse': 'Statistieken',
       '/taken/admin': 'Takenlijsten beheren',
       '/taken/beheer': 'Lijst bewerken',

@@ -1,6 +1,6 @@
 // Ontvangfunctie voor Eilandbezorger. Alleen aanleveren, ophaaltijd wijzigen en status opvragen.
-// Sleutel in kop x-eilandbezorger-sleutel: TEST-sleutel => modus test (nooit naar Lightspeed),
-// LIVE-sleutel => modus live (alleen verstuurd als vlag eilandbezorger_live aan staat).
+// Eén sleutel (EILANDBEZORGER_SLEUTEL) in kop x-eilandbezorger-sleutel. Elke aanroep vermeldt verplicht
+// modus test|live; de modus wordt bij ontvangst onveranderlijk vastgelegd. Test gaat nooit naar Lightspeed.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BestellingSchema, OphaaltijdSchema, VESTIGING_PER_MERCHANT, beginStatus, controleer, gelijkeSleutel, orderbericht, vingerafdruk } from '../_shared/eilandbezorgerLogica.ts';
 import { meld, verzend } from '../_shared/eilandbezorgerVerzend.ts';
@@ -17,16 +17,14 @@ Deno.serve(async (req) => {
   const url = Deno.env.get('SUPABASE_URL'), service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !service) return json({ fout: 'serverconfiguratie ontbreekt' }, 500);
   const sleutel = req.headers.get('x-eilandbezorger-sleutel') ?? '';
-  const test = Deno.env.get('EILANDBEZORGER_SLEUTEL_TEST') ?? '', live = Deno.env.get('EILANDBEZORGER_SLEUTEL_LIVE') ?? '';
-  const modus: 'test' | 'live' | null = gelijkeSleutel(sleutel, test) ? 'test' : gelijkeSleutel(sleutel, live) ? 'live' : null;
-  if (!modus) return json({ fout: 'sleutel ongeldig' }, 401);
+  if (!gelijkeSleutel(sleutel, Deno.env.get('EILANDBEZORGER_SLEUTEL') ?? '')) return json({ fout: 'sleutel ongeldig' }, 401);
   const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
 
   try {
     if (req.method === 'GET') {
       const u = new URL(req.url);
-      const merchant = u.searchParams.get('vestiging') ?? '', nr = u.searchParams.get('bestelnummer') ?? '';
-      if (!VESTIGING_PER_MERCHANT[merchant] || !nr) return json({ fout: 'vestiging en bestelnummer verplicht' }, 400);
+      const merchant = u.searchParams.get('vestiging') ?? '', nr = u.searchParams.get('bestelnummer') ?? '', modus = u.searchParams.get('modus') ?? '';
+      if (!VESTIGING_PER_MERCHANT[merchant] || !nr || !['test', 'live'].includes(modus)) return json({ fout: 'vestiging, bestelnummer en modus (test|live) verplicht' }, 400);
       const { data } = await admin.from('externe_bestellingen').select('*').eq('bron', 'eilandbezorger').eq('modus', modus).eq('merchant_id', merchant).eq('extern_id', nr).maybeSingle();
       return data ? json(antwoord(data)) : json({ fout: 'onbekend' }, 404);
     }
@@ -36,6 +34,7 @@ Deno.serve(async (req) => {
     if (ruw?.actie === 'ophaaltijd') {
       const p = OphaaltijdSchema.safeParse(ruw);
       if (!p.success) return json({ fout: 'ongeldig', velden: p.error.flatten().fieldErrors }, 400);
+      const modus = p.data.modus;
       const { data: r } = await admin.from('externe_bestellingen').select('*').eq('bron', 'eilandbezorger').eq('modus', modus).eq('merchant_id', p.data.vestiging).eq('extern_id', p.data.bestelnummer).maybeSingle();
       if (!r) return json({ fout: 'onbekend' }, 404);
       const magWijzigen = ['gepland', 'geblokkeerd', 'test_ok', 'afgekeurd'];
@@ -54,6 +53,7 @@ Deno.serve(async (req) => {
     const p = BestellingSchema.safeParse(ruw);
     if (!p.success) return json({ fout: 'ongeldig', velden: p.error.flatten().fieldErrors }, 400);
     const b = p.data;
+    const modus = b.modus;
     const vestiging = VESTIGING_PER_MERCHANT[b.vestiging];
     const vinger = await vingerafdruk(b);
 

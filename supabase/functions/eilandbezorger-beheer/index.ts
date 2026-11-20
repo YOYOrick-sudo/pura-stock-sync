@@ -12,7 +12,7 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('teruglezen'), id: z.string().uuid() }),
   z.object({ actie: z.literal('herverzenden'), id: z.string().uuid(), bevestiging: z.literal(true), reden: z.string().trim().min(10).max(300) }),
   z.object({ actie: z.literal('in_kassa'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
-  z.object({ actie: z.literal('live'), vestiging: z.enum(['West', 'Midsland']), aan: z.boolean() }),
+  z.object({ actie: z.literal('live'), vestiging: z.enum(['Midsland']), aan: z.boolean() }),
   z.object({ actie: z.literal('ronde') }),
 ]);
 

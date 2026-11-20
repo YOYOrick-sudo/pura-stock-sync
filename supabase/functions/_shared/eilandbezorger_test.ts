@@ -39,7 +39,7 @@ function fakeDb(tabellen: Record<string, any[]>) {
 }
 
 const basis = {
-  versie: 1, bestelnummer: 'EB1001', vestiging: '36864', ophaaltijd: '2026-11-21T17:30:00+01:00',
+  versie: 1, modus: 'test', bestelnummer: 'EB1001', vestiging: '36864', ophaaltijd: '2026-11-21T17:30:00+01:00',
   klant: { naam: 'Test Gast' }, regels: [{ code: 'FRIET', aantal: 2, stukprijs_cent: 700, extras: [{ code: 'MAYO', aantal: 1, stukprijs_cent: 50 }] }],
   bedragen: { restaurant_cent: 1500 }, betaling: { wijze: 'vooraf_betaald' },
 };
@@ -70,8 +70,12 @@ Deno.test('korting -> afgekeurd met reden, niet stilzwijgend weg', () => {
   const r = controleer(parse({ ...basis, bedragen: { restaurant_cent: 1500, korting: { actiecode: 'WELKOM', oorspronkelijk_cent: 1700, korting_cent: 200, betaald_door: 'eilandbezorger' } } }), kop);
   assertEquals(r, { ok: false, reden: 'Korting nog niet ondersteund.' });
 });
-Deno.test('onbekende vestiging wordt door schema geweigerd', () => {
+Deno.test('West en onbekende vestiging geweigerd; ontbrekende of ongeldige modus geweigerd', () => {
+  assertEquals(BestellingSchema.safeParse({ ...basis, vestiging: '41121' }).success, false);
   assertEquals(BestellingSchema.safeParse({ ...basis, vestiging: '99999' }).success, false);
+  const { modus: _m, ...zonder } = basis;
+  assertEquals(BestellingSchema.safeParse(zonder).success, false);
+  assertEquals(BestellingSchema.safeParse({ ...basis, modus: 'proef' }).success, false);
 });
 Deno.test('testsleutel terwijl live aan staat -> test_ok', () => {
   assertEquals(beginStatus({ modus: 'test', liveAan: true, configCompleet: true, ophaaltijd: new Date().toISOString(), nu: Date.now(), vensterMin: 45 }).status, 'test_ok');

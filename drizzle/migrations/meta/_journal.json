@@ -512,6 +512,13 @@
       "when": 1795212818476,
       "tag": "0072_eilandbezorger_bestellingen",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1795214451162,
+      "tag": "0073_eilandbezorger_modus_onveranderlijk",
+      "breakpoints": true
     }
   ]
 }
