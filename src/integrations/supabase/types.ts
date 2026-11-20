@@ -1749,6 +1749,238 @@ export type Database = {
         }
         Relationships: []
       }
+      externe_bestelling_log: {
+        Row: {
+          bestelling_id: string
+          created_at: string
+          door: string | null
+          id: number
+          naar_status: string
+          reden: string | null
+          van_status: string | null
+        }
+        Insert: {
+          bestelling_id: string
+          created_at?: string
+          door?: string | null
+          id?: never
+          naar_status: string
+          reden?: string | null
+          van_status?: string | null
+        }
+        Update: {
+          bestelling_id?: string
+          created_at?: string
+          door?: string | null
+          id?: never
+          naar_status?: string
+          reden?: string | null
+          van_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "externe_bestelling_log_bestelling_id_fkey"
+            columns: ["bestelling_id"]
+            isOneToOne: false
+            referencedRelation: "externe_bestellingen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      externe_bestelling_poging: {
+        Row: {
+          antwoord: string | null
+          bestelling_id: string
+          gestart_op: string
+          http_status: number | null
+          id: string
+          klaar_op: string | null
+          soort: string
+          uitkomst: string
+          versie: number
+        }
+        Insert: {
+          antwoord?: string | null
+          bestelling_id: string
+          gestart_op?: string
+          http_status?: number | null
+          id?: string
+          klaar_op?: string | null
+          soort: string
+          uitkomst?: string
+          versie: number
+        }
+        Update: {
+          antwoord?: string | null
+          bestelling_id?: string
+          gestart_op?: string
+          http_status?: number | null
+          id?: string
+          klaar_op?: string | null
+          soort?: string
+          uitkomst?: string
+          versie?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "externe_bestelling_poging_bestelling_id_fkey"
+            columns: ["bestelling_id"]
+            isOneToOne: false
+            referencedRelation: "externe_bestellingen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      externe_bestellingen: {
+        Row: {
+          bezorgkosten_cent: number
+          bezorgtijd: string | null
+          bron: string
+          created_at: string
+          extern_id: string
+          fooi_cent: number
+          id: string
+          invoer: Json
+          korting: Json | null
+          lightspeed_order_id: string | null
+          merchant_id: string
+          modus: string
+          ophaaltijd: string
+          orderbericht: Json | null
+          reden: string | null
+          referentie: string
+          regels: Json | null
+          restaurant_cent: number
+          status: string
+          updated_at: string
+          versie: number
+          vestiging: string
+          vingerafdruk: string
+          vrijgegeven_door: string | null
+        }
+        Insert: {
+          bezorgkosten_cent?: number
+          bezorgtijd?: string | null
+          bron?: string
+          created_at?: string
+          extern_id: string
+          fooi_cent?: number
+          id?: string
+          invoer: Json
+          korting?: Json | null
+          lightspeed_order_id?: string | null
+          merchant_id: string
+          modus: string
+          ophaaltijd: string
+          orderbericht?: Json | null
+          reden?: string | null
+          referentie: string
+          regels?: Json | null
+          restaurant_cent: number
+          status: string
+          updated_at?: string
+          versie?: number
+          vestiging: string
+          vingerafdruk: string
+          vrijgegeven_door?: string | null
+        }
+        Update: {
+          bezorgkosten_cent?: number
+          bezorgtijd?: string | null
+          bron?: string
+          created_at?: string
+          extern_id?: string
+          fooi_cent?: number
+          id?: string
+          invoer?: Json
+          korting?: Json | null
+          lightspeed_order_id?: string | null
+          merchant_id?: string
+          modus?: string
+          ophaaltijd?: string
+          orderbericht?: Json | null
+          reden?: string | null
+          referentie?: string
+          regels?: Json | null
+          restaurant_cent?: number
+          status?: string
+          updated_at?: string
+          versie?: number
+          vestiging?: string
+          vingerafdruk?: string
+          vrijgegeven_door?: string | null
+        }
+        Relationships: []
+      }
+      externe_kassa_config: {
+        Row: {
+          lightspeed_betaalwijze_id: string | null
+          lightspeed_klant_id: string | null
+          merchant_id: string
+          order_route: string
+          updated_at: string
+          venster_minuten: number
+          vestiging: string
+        }
+        Insert: {
+          lightspeed_betaalwijze_id?: string | null
+          lightspeed_klant_id?: string | null
+          merchant_id: string
+          order_route?: string
+          updated_at?: string
+          venster_minuten?: number
+          vestiging: string
+        }
+        Update: {
+          lightspeed_betaalwijze_id?: string | null
+          lightspeed_klant_id?: string | null
+          merchant_id?: string
+          order_route?: string
+          updated_at?: string
+          venster_minuten?: number
+          vestiging?: string
+        }
+        Relationships: []
+      }
+      externe_product_koppeling: {
+        Row: {
+          actief: boolean
+          created_at: string
+          externe_code: string
+          id: string
+          lightspeed_plu: string | null
+          lightspeed_product_id: string
+          naam: string
+          prijs_cent: number
+          soort: string
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          externe_code: string
+          id?: string
+          lightspeed_plu?: string | null
+          lightspeed_product_id: string
+          naam: string
+          prijs_cent: number
+          soort?: string
+          vestiging: string
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          externe_code?: string
+          id?: string
+          lightspeed_plu?: string | null
+          lightspeed_product_id?: string
+          naam?: string
+          prijs_cent?: number
+          soort?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       fase2_vlag: {
         Row: {
           aan: boolean

@@ -505,6 +505,13 @@
       "when": 1794848643713,
       "tag": "0071_tazza_tussenweg_staat",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1795212818476,
+      "tag": "0072_eilandbezorger_bestellingen",
+      "breakpoints": true
     }
   ]
 }
