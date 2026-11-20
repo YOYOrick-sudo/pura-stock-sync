@@ -18,3 +18,4 @@ Kooyman receipt sync uses GET-only supplier requests, strips price fields, gates
 Source-availability confirmations in AfvinkRonde reuse existing check/order mutations and preserve explicit confirmation on retry, because presentation must not infer an empty source or duplicate operational actions.
 
 Task English translations are filled by the translate-task function only when the English field is empty or still equals the app's own last auto-translation, because manual English must never be overwritten.
+Eilandbezorger orders enter only via eilandbezorger-bestelling (one server-side key, mandatory immutable test/live mode, DB trigger blocks test rows from send states) and reach Lightspeed only through _shared/eilandbezorgerVerzend.ts with per-attempt logging and atomic status/version transitions, because an uncertain send must never produce a second kitchen ticket.
