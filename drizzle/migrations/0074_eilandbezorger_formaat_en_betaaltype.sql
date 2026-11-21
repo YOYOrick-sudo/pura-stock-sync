@@ -1,0 +1,3 @@
+ALTER TABLE public.externe_product_koppeling DROP CONSTRAINT externe_product_koppeling_soort_check;
+ALTER TABLE public.externe_product_koppeling ADD CONSTRAINT externe_product_koppeling_soort_check CHECK (soort = ANY (ARRAY['product','extra','formaat']));
+ALTER TABLE public.externe_kassa_config ADD COLUMN IF NOT EXISTS lightspeed_betaalwijze_type_id text, ADD COLUMN IF NOT EXISTS lightspeed_company_id text;

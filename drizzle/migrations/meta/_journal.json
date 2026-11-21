@@ -519,6 +519,13 @@
       "when": 1795214451162,
       "tag": "0073_eilandbezorger_modus_onveranderlijk",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1795279572732,
+      "tag": "0074_eilandbezorger_formaat_en_betaaltype",
+      "breakpoints": true
     }
   ]
 }

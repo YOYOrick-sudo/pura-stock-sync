@@ -1915,6 +1915,8 @@ export type Database = {
       externe_kassa_config: {
         Row: {
           lightspeed_betaalwijze_id: string | null
+          lightspeed_betaalwijze_type_id: string | null
+          lightspeed_company_id: string | null
           lightspeed_klant_id: string | null
           merchant_id: string
           order_route: string
@@ -1924,6 +1926,8 @@ export type Database = {
         }
         Insert: {
           lightspeed_betaalwijze_id?: string | null
+          lightspeed_betaalwijze_type_id?: string | null
+          lightspeed_company_id?: string | null
           lightspeed_klant_id?: string | null
           merchant_id: string
           order_route?: string
@@ -1933,6 +1937,8 @@ export type Database = {
         }
         Update: {
           lightspeed_betaalwijze_id?: string | null
+          lightspeed_betaalwijze_type_id?: string | null
+          lightspeed_company_id?: string | null
           lightspeed_klant_id?: string | null
           merchant_id?: string
           order_route?: string

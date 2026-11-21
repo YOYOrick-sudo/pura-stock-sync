@@ -46,8 +46,8 @@ export const OphaaltijdSchema = z.object({
   bezorgtijd: iso.optional(),
 });
 
-export type Koppeling = { soort: 'product' | 'extra'; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean };
-export type Regel = { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
+export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean };
+export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
 
 function sorteer(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sorteer);
@@ -69,25 +69,38 @@ export function gelijkeSleutel(a: string, b: string): boolean {
   return d === 0 && a.length > 0;
 }
 
+/** Sleutel voor formaatkoppeling: gerechtcode + formaatkeuze. */
+export const formaatSleutel = (product: string, keuze: string) => `${product}|${keuze}`;
+
 export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true; regels: Regel[] } | { ok: false; reden: string } {
   if (b.betaling.wijze !== 'vooraf_betaald') return { ok: false, reden: 'Betaalwijze niet ondersteund; alleen vooraf_betaald.' };
   if (b.bedragen.korting && b.bedragen.korting.korting_cent > 0) return { ok: false, reden: 'Korting nog niet ondersteund.' };
-  const k = (soort: 'product' | 'extra', code: string) => koppelingen.find((x) => x.soort === soort && x.externe_code === code && x.actief);
+  const k = (soort: Koppeling['soort'], code: string) => koppelingen.find((x) => x.soort === soort && x.externe_code === code && x.actief);
   const regels: Regel[] = []; let som = 0;
   for (const r of b.regels) {
-    const p = k('product', r.code);
-    if (!p) return { ok: false, reden: `Onbekend product: ${r.code}` };
-    if (Math.abs(p.prijs_cent - r.stukprijs_cent) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}: verwacht ${p.prijs_cent}, kreeg ${r.stukprijs_cent}` };
+    // Formaat: gerecht + keuze wordt precies 1x het afzonderlijke kassaproduct; toeslag niet nogmaals optellen.
+    const formaten = (r.extras ?? []).map((e) => ({ e, f: k('formaat', formaatSleutel(r.code, e.code)) })).filter((x) => x.f);
+    const gerechtHeeftFormaten = koppelingen.some((x) => x.soort === 'formaat' && x.externe_code.startsWith(r.code + '|'));
+    if (formaten.length > 1) return { ok: false, reden: `Meer dan één formaat voor ${r.code}` };
+    if (gerechtHeeftFormaten && formaten.length === 0) return { ok: false, reden: `Formaat ontbreekt of is onbekend voor ${r.code}` };
+    let basis: Koppeling | undefined, stuk = r.stukprijs_cent, rest = r.extras ?? [];
+    if (formaten.length === 1) {
+      const { e, f } = formaten[0];
+      if (e.aantal !== 1) return { ok: false, reden: `Formaat ${e.code} moet aantal 1 hebben` };
+      basis = f; stuk = r.stukprijs_cent + e.stukprijs_cent; rest = rest.filter((x) => x !== e);
+    } else basis = k('product', r.code);
+    if (!basis) return { ok: false, reden: `Onbekend product: ${r.code}` };
+    if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
-    for (const e of r.extras ?? []) {
+    for (const e of rest) {
       const x = k('extra', e.code);
       if (!x) return { ok: false, reden: `Onbekende extra: ${e.code}` };
       if (Math.abs(x.prijs_cent - e.stukprijs_cent) > 1) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code}` };
       extras.push({ lightspeed_product_id: x.lightspeed_product_id, naam: x.naam, aantal: e.aantal, stukprijs_cent: e.stukprijs_cent });
       som += e.aantal * e.stukprijs_cent * r.aantal;
     }
-    som += r.aantal * r.stukprijs_cent;
-    regels.push({ lightspeed_product_id: p.lightspeed_product_id, naam: p.naam, aantal: r.aantal, stukprijs_cent: r.stukprijs_cent, extras });
+    som += r.aantal * stuk;
+    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras });
   }
   if (som !== b.bedragen.restaurant_cent) return { ok: false, reden: `Restaurantbedrag klopt niet: regels ${som}, opgegeven ${b.bedragen.restaurant_cent}` };
   return { ok: true, regels };
@@ -102,20 +115,46 @@ export function beginStatus(p: { modus: 'test' | 'live'; liveAan: boolean; confi
   return { status: 'verzenden' };
 }
 
-/** ONGEVERIFIEERD orderformaat (L-Series onlineordering). Pas aan na kassaproef; alleen hier. */
-export function orderbericht(p: { referentie: string; ophaaltijd: string; klant: Bestelling['klant']; opmerking?: string; regels: Regel[]; restaurant_cent: number; betaalwijzeId: string | null }) {
-  const notitie = [`Eilandbezorger ${p.referentie}`, `Gast: ${p.klant.naam}${p.klant.telefoon ? ' ' + p.klant.telefoon : ''}`, p.opmerking].filter(Boolean).join(' | ');
+/** AANNAME (onbevestigd door Lightspeed): de POST-voorbeelden tonen orderPayments als object, de GET-antwoorden als lijst.
+ * Wij sturen een lijst; omzetten kan hier op één plek zodra de kassaproef het formaat bevestigt. */
+export const BETALINGEN_ALS_LIJST = true;
+export const centen = (euro: number) => Math.round(euro * 100);
+
+/** L-Series onlineordering, volgens documentatie. Vooraf betaald: status ACCEPTED + volledige betaling op externe betaalwijze. */
+export function orderbericht(p: { referentie: string; ophaaltijd: string; klant: Bestelling['klant']; opmerking?: string; regels: Regel[]; restaurant_cent: number;
+  betaalwijzeId: string | null; betaalwijzeTypeId?: string | null; klantId?: string | null; route?: 'customer_order' | 'establishment_order'; companyId?: string | null }) {
+  const notitie = [`Eilandbezorger ${p.referentie} (vooraf betaald)`, `Gast: ${p.klant.naam}${p.klant.telefoon ? ' ' + p.klant.telefoon : ''}`, p.opmerking].filter(Boolean).join(' | ');
+  const est = p.route === 'establishment_order';
+  const betaling = p.betaalwijzeId ? { amount: p.restaurant_cent / 100, paymentTypeId: Number(p.betaalwijzeId), paymentTypeTypeId: p.betaalwijzeTypeId ? Number(p.betaalwijzeTypeId) : undefined, tip: 0 } : undefined;
   return {
-    thirdPartyReference: p.referentie,
+    ...(p.klantId ? { customerId: Number(p.klantId) } : {}),
+    ...(est && p.companyId ? { companyId: Number(p.companyId) } : {}),
+    externalReference: p.referentie,
     type: 'takeaway',
+    status: 'ACCEPTED',
     deliveryDate: p.ophaaltijd,
+    description: `Eilandbezorger ${p.referentie}`.slice(0, 100),
     note: notitie.slice(0, 500),
     orderItems: p.regels.map((r) => ({
-      productId: Number(r.lightspeed_product_id), amount: r.aantal, unitPrice: r.stukprijs_cent / 100,
+      ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),
+      amount: r.aantal, unitPrice: r.stukprijs_cent / 100, totalPrice: (r.aantal * r.stukprijs_cent) / 100,
       modifiers: r.extras.map((e) => ({ productId: Number(e.lightspeed_product_id), amount: e.aantal, unitPrice: e.stukprijs_cent / 100 })),
+      subitems: [],
     })),
-    orderPayment: p.betaalwijzeId ? { paymentTypeId: Number(p.betaalwijzeId), paymentAmount: p.restaurant_cent / 100 } : undefined,
+    orderPayments: betaling ? (BETALINGEN_ALS_LIJST ? [betaling] : betaling) : undefined,
   };
+}
+
+/** Pad volgens documentatie; beide varianten bevatten het klantgedeelte. */
+export function orderPad(route: string | null | undefined, klantId: string | null | undefined) {
+  if (!klantId) return null;
+  return `/rest/onlineordering/customer/${encodeURIComponent(klantId)}/${route === 'establishment_order' ? 'establishmentorder' : 'order'}`;
+}
+
+/** Totaal betaald in het bericht moet exact het restaurantbedrag zijn. */
+export function betaaldInBericht(bericht: ReturnType<typeof orderbericht>): number {
+  const b = bericht.orderPayments; const lijst = Array.isArray(b) ? b : b ? [b] : [];
+  return lijst.reduce((s, x) => s + centen(x.amount), 0);
 }
 
 /** Uitkomst van een verzendpoging. Alles wat Lightspeed mogelijk verwerkt heeft is 'uitkomst_onbekend'. */

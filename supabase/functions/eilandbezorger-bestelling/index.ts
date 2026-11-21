@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     let status: string, reden: string | undefined;
     if (!conn || !['gekoppeld', 'token_verlopen'].includes(conn.status)) { status = 'afgekeurd'; reden = 'Vestiging heeft geen actieve kassakoppeling.'; }
     else if (!c.ok) { status = 'afgekeurd'; reden = c.reden; }
-    else ({ status, reden } = beginStatus({ modus, liveAan: vlag?.aan === true, configCompleet: !!cfg?.lightspeed_klant_id && !!cfg?.lightspeed_betaalwijze_id, ophaaltijd: b.ophaaltijd, nu: Date.now(), vensterMin: cfg?.venster_minuten ?? 45 }));
+    else ({ status, reden } = beginStatus({ modus, liveAan: vlag?.aan === true, configCompleet: !!cfg?.lightspeed_klant_id && !!cfg?.lightspeed_betaalwijze_id && !!cfg?.lightspeed_betaalwijze_type_id && (cfg?.order_route !== 'establishment_order' || !!cfg?.lightspeed_company_id), ophaaltijd: b.ophaaltijd, nu: Date.now(), vensterMin: cfg?.venster_minuten ?? 45 }));
 
     const regels = c.ok ? c.regels : null;
     const { data: rij, error } = await admin.from('externe_bestellingen').insert({
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       status: status === 'verzenden' ? 'ontvangen' : status, reden: reden ?? null, ophaaltijd: b.ophaaltijd, bezorgtijd: b.bezorgtijd ?? null,
       restaurant_cent: b.bedragen.restaurant_cent, bezorgkosten_cent: b.bedragen.bezorgkosten_cent, fooi_cent: b.bedragen.fooi_cent, korting: b.bedragen.korting ?? null,
       invoer: ruw, regels,
-      orderbericht: regels ? orderbericht({ referentie, ophaaltijd: b.ophaaltijd, klant: b.klant, opmerking: b.opmerking, regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null }) : null,
+      orderbericht: regels ? orderbericht({ referentie, ophaaltijd: b.ophaaltijd, klant: b.klant, opmerking: b.opmerking, regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null, betaalwijzeTypeId: cfg?.lightspeed_betaalwijze_type_id ?? null, klantId: cfg?.lightspeed_klant_id ?? null, route: cfg?.order_route, companyId: cfg?.lightspeed_company_id ?? null }) : null,
     }).select('*').single();
     if (error) {
       if (error.code === '23505') { const r = await bestaand(); if (r) return herhaling(r); }

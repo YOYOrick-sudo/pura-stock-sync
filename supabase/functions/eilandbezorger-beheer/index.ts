@@ -15,6 +15,7 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('in_kassa'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
   z.object({ actie: z.literal('live'), vestiging: z.enum(['Midsland']), aan: z.boolean() }),
   z.object({ actie: z.literal('ronde') }),
+  z.object({ actie: z.literal('kassa_instellingen') }),
   z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']) }),
 ]);
 
@@ -32,6 +33,26 @@ async function kaart(admin: any, bron: string) {
     if (!Array.isArray(lijst) || lijst.length < 100) break;
   }
   return { aantal: uit.length, items: uit };
+}
+
+// Alleen-lezen: bedrijfsstructuur, klanten en betaalwijzen van Midsland. Nooit schrijven.
+async function kassaInstellingen(admin: any) {
+  const t = await geldigToken(admin, 'Midsland');
+  if ('error' in t) return { fout: t.error };
+  const lees = async (pad: string) => {
+    const r = await fetch(`https://lightspeedapis.com/resto${pad}`, { method: 'GET', headers: { Authorization: `Bearer ${t.token}`, Accept: 'application/json' } });
+    const tekst = await r.text();
+    if (!r.ok) return { fout: `lightspeed ${r.status}`, detail: tekst.slice(0, 300) };
+    try { return JSON.parse(tekst); } catch { return { fout: 'geen JSON' }; }
+  };
+  const klanten: any[] = [];
+  for (let offset = 0; offset < 3000; offset += 100) {
+    const j: any = await lees(`/rest/core/customer?amount=100&offset=${offset}`);
+    if (j?.fout) { klanten.push(j); break; }
+    const l = j.results ?? []; klanten.push(...l.filter((k: any) => JSON.stringify([k.firstName, k.lastName, k.companyName, k.email]).toLowerCase().includes('eiland')).map((k: any) => ({ id: k.id, voornaam: k.firstName, achternaam: k.lastName, bedrijf: k.companyName, companyId: k.companyId })));
+    if (l.length < 100) break;
+  }
+  return { company: await lees('/rest/core/company'), establishment: await lees('/rest/core/establishment'), betaalwijzen: { company: await lees('/rest/core/company/36864/paymenttype'), lijst: await lees('/rest/core/paymenttype/list'), financieel: await lees('/rest/financial/paymenttype') }, eilandbezorgerKlanten: klanten };
 }
 
 async function claimVerzend(admin: any, r: any, van: string[], door?: string) {
@@ -84,6 +105,10 @@ Deno.serve(async (req) => {
     const eigenaar = (rollen ?? []).some((r: any) => ['owner', 'admin'].includes(r.role));
     const magVestiging = (v: string) => eigenaar || (rollen ?? []).some((r: any) => r.role === 'manager' && r.location === v);
 
+    if (a.actie === 'kassa_instellingen') {
+      if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      return json(await kassaInstellingen(admin));
+    }
     if (a.actie === 'kaart') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
       return json(await kaart(admin, a.bron));

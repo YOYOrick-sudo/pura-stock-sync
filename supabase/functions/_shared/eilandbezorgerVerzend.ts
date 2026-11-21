@@ -1,5 +1,5 @@
 import { geldigToken } from './lightspeedToken.ts';
-import { uitkomstVan } from './eilandbezorgerLogica.ts';
+import { orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 
 export const API = 'https://lightspeedapis.com/resto';
 
@@ -33,7 +33,11 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch) {
     if (r) await meld(admin, rij.vestiging, 'Eilandbezorger niet verstuurd', `${rij.extern_id}: kassatoegang mislukt`);
     return r ?? rij;
   }
-  const pad = cfg?.order_route === 'establishment_order' ? `/rest/onlineordering/establishmentorder` : `/rest/onlineordering/customer/${cfg?.lightspeed_klant_id}/order`;
+  const pad = orderPad(cfg?.order_route, cfg?.lightspeed_klant_id);
+  if (!pad) {
+    await admin.from('externe_bestelling_poging').update({ uitkomst: 'niet_verstuurd', antwoord: 'klant-ID ontbreekt', klaar_op: new Date().toISOString() }).eq('id', poging.id);
+    return (await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geweigerd', {}, 'Niet verstuurd: klant-ID ontbreekt')) ?? rij;
+  }
   try {
     const res = await haal(API + pad, { method: 'POST', headers: { Authorization: `Bearer ${tok.token}`, 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(rij.orderbericht), signal: AbortSignal.timeout(20_000) });
     http = res.status; body = (await res.text()).slice(0, 2000);
