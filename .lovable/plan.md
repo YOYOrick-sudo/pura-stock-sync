@@ -1,57 +1,46 @@
-# Eilandbezorger Midsland: één Lightspeed-klant per gast
+# Antwoord: Lightspeed-gegevens en mogelijkheden (niets gewijzigd)
 
-Liveverzending blijft uit. Bestaande testbestellingen blijven staan. In testmodus gaat niets naar Lightspeed, ook geen klantaanmaak.
+Er hoeft niets gebouwd te worden. Bij elk punt staat [code] als ik het in de code of database heb gezien, en [vermoeden] als ik het niet heb gecontroleerd.
 
-## Wat er verandert
+## 1. Wat de app nu ophaalt
+- Bron: één Lightspeed L-Series-adres, de bonnenlijst (financial/receipt), per dag en per 50 bonnen. [code]
+- **omzet_uren**: omzet per werkdag per uur, met en zonder btw, plus het aantal bonnen. Midsland vanaf 31-12-2024, West vanaf 01-01-2025, tot en met vandaag. [code]
+- **kassa_verkoop_dag**: per dag per product het aantal en de omzet, met en zonder btw. Beide vestigingen vanaf 01-01-2025. [code]
+- Losse bonnen worden niet bewaard. Ze worden opgehaald, opgeteld en daarna weggegooid. [code]
+- Verversen: Midsland elke 30 minuten, West om :05 en :35. Elke nacht een controle (01:30 en 01:35 UTC) en een dagelijkse sync om 05:15 UTC. [code]
 
-1. **Gastgegevens in het aanleverbericht**
-   - Nieuw: `klant.voornaam`, `klant.achternaam`, `klant.email` en een optionele `klant.klantcode` van Eilandbezorger.
-   - Het telefoonnummer van Karin (van Eilandbezorger zelf) wordt nooit als gastnummer opgeslagen of naar Lightspeed gestuurd.
-   - `klant.naam` blijft werken voor oude berichten.
+## 2. Wat er al is of zonder nieuwe toestemming kan
+De toestemming is gevraagd zonder speciale rechten [code]. Welke gegevens Lightspeed daarmee geeft, is per onderdeel niet getest [vermoeden].
+- a. Bonnen met tijdstippen: zitten in de opgehaalde gegevens, maar worden niet bewaard. Het openingstijdstip (creationDate) en het laatste wijzigingstijdstip (modificationDate) zijn er. Het sluittijdstip (closingDate) is bij jullie altijd leeg; daarom gebruiken we het wijzigingstijdstip als afrekenmoment. [code]
+- b. Bonregels per product: product, aantal en prijs zijn er, maar zonder eigen tijdstip; ze krijgen het tijdstip van de bon. [code]
+- c. Gasten/couverts: niet gebruikt. Zit waarschijnlijk wel in de bon. [vermoeden]
+- d. Tafel/plattegrond: niet gebruikt. De tafel staat waarschijnlijk op de bon; de plattegrond kan via een apart onderdeel van Lightspeed. [vermoeden]
+- e. Betaalwijze en fooi: niet bewaard. Betalingen staan waarschijnlijk op de bon; fooi is onzeker. [vermoeden]
+- f. Artikelstam: wordt niet periodiek gesynct. Voor Eilandbezorger is de productkaart wel eenmalig, alleen-lezen opgehaald: 1154 producten, groepen, prijzen en extra's. Dat lukte met de bestaande toegang. [code] Btw per product niet gecontroleerd. [vermoeden]
+- g. Kortingen, retouren en annuleringen: negatieve regels tellen mee in de omzet, zonder aparte behandeling. Alleen bonnen met status PAID, DONE of ACCEPTED tellen mee; andere statussen vallen weg. Kortingsvelden worden niet gelezen. [code]
 
-2. **Gast herkennen of aanmaken** (alleen in livemodus, vlak voor verzenden)
-   - Volgorde: eerst een eerder vastgelegde koppeling (klantcode of e-mail). Anders in Lightspeed zoeken op het exacte e-mailadres.
-   - 1 treffer: dat customerId gebruiken en koppeling vastleggen.
-   - 0 treffers: klant één keer aanmaken en koppeling vastleggen.
-   - Meerdere treffers, of naam die niet bij het e-mailadres past: bestelling krijgt status "ter beoordeling" met een reden. Er wordt niets verstuurd.
-   - Twee bestellingen tegelijk voor dezelfde gast maken samen één klant. Daarvoor krijgt de klantkoppeling een unieke sleutel per e-mailadres en een vergrendeling per gast.
+## 3. Tussenweg nu, en wat uitbreiden zou kosten
+- Nu: één bericht per vestiging met per dag (hooguit 3 dagen):
+  - dag en opgehaald_op;
+  - uren: uur, omzet met en zonder btw, aantal bonnen;
+  - producten: product-ID, naam, aantal, omzet met en zonder btw. [code]
+- Moment: elke 30 minuten (:10 en :40), en gisteren nog eens na de nacht-sync. Bij een storing één herhaling na 60 seconden; mislukte dagen schuiven door naar de volgende ronde. De laatste test gaf nog een 404 bij de ontvanger. [code]
+- Bonnen en bonregels toevoegen kost ongeveer 1,5 tot 2,5 dag [vermoeden]:
+  - de bonnen bewaren in twee nieuwe tabellen (bonnen, bonregels) met een vaste sleutel per bon;
+  - het doorsturen uitbreiden en de berichten opdelen per dag (er is al een terugval bij te grote berichten);
+  - tests schrijven;
+  - afspreken met de ontvanger welk formaat ze verwachten.
+- Risico: de opslag groeit, ruwweg enkele duizenden bonnen per week in het seizoen [vermoeden]. De huidige omzetberekening blijft gewoon werken.
 
-3. **Opmerking bij de bestelling**
-   - Karins `opmerking` gaat ongewijzigd in het Lightspeed-veld `note`.
-   - Het Eilandbezorger-bestelnummer blijft apart in `externalReference` en `description`.
-   - Geen gastnaam of telefoon meer in de notitie. De naam komt via het klantprofiel. De opmerking wordt alleen bij de bestelling bewaard, niet bij de klant.
-   - De order gaat naar de route met het customerId van de gast in plaats van de vaste klant "Eilandbezorger".
+## 4. Bezorgkoppeling (Eilandbezorger)
+- Die gebruikt dezelfde Lightspeed-toegang: dezelfde app-registratie, dezelfde koppeling per vestiging en een gedeelde vernieuwing van de toegang (met een slot zodat ze niet botsen). [code]
+- Een extra, eigen koppeling ernaast:
+  - een aparte app-registratie heeft eigen toegang en zit de bestaande twee niet in de weg;
+  - een tweede toestemming op dezelfde registratie kan de huidige toegang ongeldig maken, dus dat niet doen. [vermoeden]
+  - Aanvraaglimieten gelden waarschijnlijk per account en worden dan gedeeld. [vermoeden]
 
-4. **Tests (lokaal, zonder Lightspeed)**
-   - Een nieuwe gast bestelt twee keer, met "Saus apart" en daarna "Geen bestek". Dan ontstaat één klantprofiel, krijgen beide orders hetzelfde customerId en bevat elke order alleen zijn eigen notitie.
-   - Gelijktijdige en herhaalde aanlevering leveren geen dubbele klant en geen dubbele order op.
-   - Meerdere treffers of tegenstrijdige gegevens leiden tot "ter beoordeling".
-   - In testmodus vindt geen enkele aanroep naar Lightspeed plaats.
-   - Het telefoonnummer komt nergens in het bericht voor.
-   - Bij 3× friet sturen we €21,00 als betaling mee.
-
-5. **Voorbereiding fysieke proef**
-   - Een nieuw bestelnummer, 3× Zoete Aardappel Friet (PV-FFA8275F) met opmerking "Saus apart". Die wordt pas verstuurd als jij live aanzet.
-   - Een checklist met de slaagcriteria. Naam en notitie zijn leesbaar op keukenbon en klantbon. De keukenbon verschijnt één keer. €21,00 staat op "Eilandbezorger – vooraf betaald" en er staat €0,00 open.
-
-## Wat je daarna van mij krijgt
-- Een kort bericht voor Karin met de nieuwe klantvelden en één fictief voorbeeld.
-- Een lijst met handelingen in de Lightspeed-backoffice: de betaalwijze-ID en het type ervan, welke printerinstellingen je controleert (online orders naar de keukenprinter, klantbon met klantnaam en notitie, één keer printen) en de instelling voor automatisch accepteren en voltooien.
-
-## Risico's
-- **Klant zoeken en aanmaken is nog niet bevestigd door Lightspeed.** De route uit de documentatie is nog niet getest, en Lightspeed weigerde eerder tijdelijk verzoeken omdat het er te veel waren. Dit blijkt pas bij de eerste liveproef. Tot die tijd valt de bestelling bij twijfel op "ter beoordeling" en wordt er niets dubbel aangemaakt.
-- **Gastgegevens zijn persoonsgegevens.** Ze worden alleen server-side bewaard en zijn zichtbaar voor eigenaren.
-- **Betaling als lijst is nog een aanname.**
-
-## Technisch
-- Migratie (alleen toevoegingen):
-  - Tabel `externe_klant_koppeling` (vestiging, e-mail in kleine letters, klantcode, lightspeed_customer_id), met unieke sleutels per vestiging plus e-mail en per vestiging plus klantcode. RLS alleen voor eigenaren en de service role.
-  - Status `ter_beoordeling` toegestaan maken, met kolommen voor de gastvelden op `externe_bestellingen`.
-- `eilandbezorgerLogica.ts`:
-  - Schema uitbreiden.
-  - Pure functie `kiesKlant(koppeling, treffers, gast)` die `gebruik`, `aanmaken` of `beoordelen` teruggeeft.
-  - `orderbericht` aanpassen: note is alleen de opmerking, het customerId komt per order mee en telefoon gaat er niet in.
-- `eilandbezorgerVerzend.ts`:
-  - Klantstap vóór de orderpoging, met een lease per gast. Na het aanmaken eerst opnieuw zoeken, zodat er geen tweede klant ontstaat.
-  - Bestaande poginglog en statusovergangen blijven werken.
-- Nieuwe Deno-tests in `_shared/`. Alleen de twee Eilandbezorger-functies worden gedeployed en er komt geen live-aanroep. `docs/eilandbezorger-aansluiting.md` wordt bijgewerkt.
+## 5. Grenzen
+- Limieten: de code wacht als Lightspeed "te veel aanvragen" (429) of een serverfout geeft, en houdt zich aan de opgegeven wachttijd. Tussen dagen zit 250 ms pauze en er is een maximum van 500 pagina's per dag. Lightspeed noemt geen vaste limiet. [code]
+- Vertraging: gegevens zijn tot ongeveer 30 minuten oud, en de tussenweg komt daar nog 5 tot 10 minuten achteraan. Een bon die nog openstaat telt pas mee als hij afgerekend is. [code]
+- Dagwissel: de werkdag kantelt om 06:00 Amsterdamse tijd. Een bon van 01:00 hoort dus bij de vorige dag. [code]
+- Twee vestigingen: elk heeft een eigen koppeling (Midsland 36864, West 41121) en eigen sync-taken. Een fout bij de ene vestiging stopt de andere niet. Een gesloten dag levert gewoon geen gegevens. [code]
