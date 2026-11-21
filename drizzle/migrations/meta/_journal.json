@@ -526,6 +526,13 @@
       "when": 1795279572732,
       "tag": "0074_eilandbezorger_formaat_en_betaaltype",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1795281310705,
+      "tag": "0075_eilandbezorger_klant_per_gast",
+      "breakpoints": true
     }
   ]
 }

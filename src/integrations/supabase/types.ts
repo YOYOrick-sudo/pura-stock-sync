@@ -1842,6 +1842,7 @@ export type Database = {
           id: string
           invoer: Json
           korting: Json | null
+          lightspeed_klant_id: string | null
           lightspeed_order_id: string | null
           merchant_id: string
           modus: string
@@ -1868,6 +1869,7 @@ export type Database = {
           id?: string
           invoer: Json
           korting?: Json | null
+          lightspeed_klant_id?: string | null
           lightspeed_order_id?: string | null
           merchant_id: string
           modus: string
@@ -1894,6 +1896,7 @@ export type Database = {
           id?: string
           invoer?: Json
           korting?: Json | null
+          lightspeed_klant_id?: string | null
           lightspeed_order_id?: string | null
           merchant_id?: string
           modus?: string
@@ -1945,6 +1948,51 @@ export type Database = {
           updated_at?: string
           venster_minuten?: number
           vestiging?: string
+        }
+        Relationships: []
+      }
+      externe_klant_koppeling: {
+        Row: {
+          aanmaak_op: string | null
+          achternaam: string
+          created_at: string
+          email: string
+          id: string
+          klantcode: string | null
+          lightspeed_klant_id: string | null
+          status: string
+          updated_at: string
+          vestiging: string
+          voornaam: string
+          vorige_status: string | null
+        }
+        Insert: {
+          aanmaak_op?: string | null
+          achternaam: string
+          created_at?: string
+          email: string
+          id?: string
+          klantcode?: string | null
+          lightspeed_klant_id?: string | null
+          status: string
+          updated_at?: string
+          vestiging: string
+          voornaam: string
+          vorige_status?: string | null
+        }
+        Update: {
+          aanmaak_op?: string | null
+          achternaam?: string
+          created_at?: string
+          email?: string
+          id?: string
+          klantcode?: string | null
+          lightspeed_klant_id?: string | null
+          status?: string
+          updated_at?: string
+          vestiging?: string
+          voornaam?: string
+          vorige_status?: string | null
         }
         Relationships: []
       }

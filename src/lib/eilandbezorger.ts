@@ -1,6 +1,6 @@
 import type { StatusToon } from '@/components/pura';
 
-export const AANDACHT = ['geblokkeerd', 'uitkomst_onbekend', 'geweigerd', 'verzenden', 'afgekeurd'] as const;
+export const AANDACHT = ['geblokkeerd', 'uitkomst_onbekend', 'geweigerd', 'verzenden', 'afgekeurd', 'ter_beoordeling'] as const;
 
 const LABELS: Record<string, { tekst: string; toon: StatusToon }> = {
   ontvangen: { tekst: 'Ontvangen', toon: 'neutraal' },
@@ -13,6 +13,7 @@ const LABELS: Record<string, { tekst: string; toon: StatusToon }> = {
   verzonden: { tekst: 'In kassa', toon: 'goed' },
   geweigerd: { tekst: 'Geweigerd', toon: 'fout' },
   uitkomst_onbekend: { tekst: 'Onzeker', toon: 'fout' },
+  ter_beoordeling: { tekst: 'Ter beoordeling', toon: 'let-op' },
 };
 export const statusLabel = (s: string) => LABELS[s] ?? { tekst: s, toon: 'neutraal' as StatusToon };
 
@@ -22,7 +23,7 @@ export function actiesVoor(status: string, modus: string): ('annuleren' | 'vrijg
   if (modus === 'live' && status === 'geblokkeerd') a.push('vrijgeven');
   if (modus === 'live' && status === 'uitkomst_onbekend') a.push('teruglezen', 'in_kassa', 'herverzenden');
   if (modus === 'live' && status === 'geweigerd') a.push('herverzenden');
-  if (['ontvangen', 'gepland', 'geblokkeerd', 'afgekeurd', 'test_ok'].includes(status)) a.push('annuleren');
+  if (['ontvangen', 'gepland', 'geblokkeerd', 'afgekeurd', 'test_ok', 'ter_beoordeling'].includes(status)) a.push('annuleren');
   return a;
 }
 

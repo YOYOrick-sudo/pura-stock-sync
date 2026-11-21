@@ -27,7 +27,7 @@ Elke aanroep bevat `"modus": "test"` of `"modus": "live"`. Ontbreekt hij: 400.
   "vestiging": "36864",
   "ophaaltijd": "2026-11-21T17:30:00+01:00",
   "bezorgtijd": "2026-11-21T17:50:00+01:00",
-  "klant": { "naam": "Jan", "telefoon": "0612345678" },
+  "klant": { "voornaam": "Sanne", "achternaam": "de Vries", "email": "sanne.devries@example.com", "klantcode": "EBK-10293" },
   "opmerking": "Geen ui",
   "regels": [
     { "code": "FRIET-ZOET", "naam": "Zoete Aardappel Friet", "aantal": 2, "stukprijs_cent": 700,
@@ -111,7 +111,12 @@ Annuleren of wijzigen ná verzending: telefonisch met het restaurant.
 - **Productcodes zijn nog niet gekoppeld.** Tot Pura de lijst vult, wordt elke bestelling afgekeurd met "Onbekend product". Stuur Pura je productcodes en prijzen.
 - Daardoor is `test_ok` nog niet echt bereikt; de route ernaartoe is wel automatisch getest.
 - **Live verzending naar de kassa staat uit.** Live-bestellingen worden nu `geblokkeerd`.
-- Orderformaat richting Lightspeed, vaste klant, betaalwijze en de orderroute zijn nog niet bevestigd; daarna volgt een gecontroleerde proefbestelling op de kassa.
+- Klant: voor live verplicht `klant.voornaam`, `klant.achternaam`, `klant.email`; optioneel `klant.klantcode` (vaste code van Eilandbezorger). Per gast ontstaat één Lightspeed-klantprofiel (herkend op klantcode of exact e-mailadres). Twijfel → status `ter_beoordeling`. `klant.telefoon` wordt geaccepteerd maar nooit gebruikt. Oude berichten met alleen `klant.naam` blijven geldig voor test.
+- `opmerking` gaat ongewijzigd naar de bon (Lightspeed `note`), alleen bij die bestelling. Het bestelnummer staat in `description`.
+- Betaling gaat mee als één `orderPayments`-object (officieel POST-voorbeeld). Formaat nog niet door een echte kassaproef bevestigd.
+
+## Begeleide kassaproef (één keer, pas na akkoord Yorick en live aan)
+`bestelnummer` nieuw (bijv. `EB-PROEF-20261122-1`), `modus: "live"`, 3× `PV-FFA8275F` à 700, `restaurant_cent: 2100`, `opmerking: "Saus apart"`, echte gastnaam/e-mail van de proefpersoon. Geslaagd: naam en "Saus apart" op keukenbon én klantbon, keukenbon precies één keer, €21,00 op "Eilandbezorger – vooraf betaald", €0,00 open, zonder handmatig afslaan. Bij een time-out niet opnieuw versturen; eerst teruglezen.
 - Automatisch doorsturen van geplande bestellingen wordt pas aangezet als live aangaat.
 - Kortingen worden afgekeurd tot een kassaproef.
 - Annuleren of wijzigen na verzending gaat telefonisch.

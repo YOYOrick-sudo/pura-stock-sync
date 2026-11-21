@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
     const door = u.user.id;
 
     if (a.actie === 'annuleren') {
-      const x = await overgang(admin, r.id, r.versie, ['ontvangen', 'gepland', 'geblokkeerd', 'afgekeurd', 'test_ok'], 'geannuleerd', {}, a.reden, door);
+      const x = await overgang(admin, r.id, r.versie, ['ontvangen', 'gepland', 'geblokkeerd', 'afgekeurd', 'test_ok', 'ter_beoordeling'], 'geannuleerd', {}, a.reden, door);
       return x ? json({ status: x.status }) : json({ fout: 'kan niet (meer) annuleren', status: r.status }, 409);
     }
     if (a.actie === 'vrijgeven') {
@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       const { data: vlag } = await admin.from('fase2_vlag').select('aan').eq('vestiging', r.vestiging).eq('vlag', 'eilandbezorger_live').maybeSingle();
       if (!vlag?.aan) return json({ fout: 'live staat uit' }, 409);
       const { data: cfg } = await admin.from('externe_kassa_config').select('*').eq('vestiging', r.vestiging).maybeSingle();
-      if (!cfg?.lightspeed_klant_id || !cfg?.lightspeed_betaalwijze_id) return json({ fout: 'kassa-instellingen ontbreken' }, 409);
+      if (!cfg?.lightspeed_betaalwijze_id || !cfg?.lightspeed_betaalwijze_type_id) return json({ fout: 'kassa-instellingen ontbreken' }, 409);
       if (new Date(r.ophaaltijd).getTime() < Date.now() && !a.tijd_voorbij_akkoord) return json({ fout: 'ophaaltijd is voorbij; bevestig bewust', tijd_voorbij: true }, 409);
       const verder = new Date(r.ophaaltijd).getTime() - Date.now() > cfg.venster_minuten * 60_000;
       if (verder) { const x = await overgang(admin, r.id, r.versie, ['geblokkeerd'], 'gepland', {}, 'Vrijgegeven, wacht op venster', door); return x ? json({ status: x.status }) : json({ fout: 'tegelijk gewijzigd' }, 409); }
