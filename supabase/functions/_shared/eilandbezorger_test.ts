@@ -139,3 +139,8 @@ Deno.test('laat succesantwoord na vastloop-markering -> verzonden met order-ID, 
   const r = await verzend(db, { ...rij }, traag);
   assertEquals(calls, 1); assertEquals(r.status, 'verzonden'); assertEquals(r.lightspeed_order_id, '9');
 });
+
+Deno.test('korting null of ontbrekend -> geen korting', () => {
+  const r = BestellingSchema.safeParse({ ...basis, bedragen: { restaurant_cent: 1500, korting: null } });
+  if (!r.success) throw new Error('null korting geweigerd');
+});

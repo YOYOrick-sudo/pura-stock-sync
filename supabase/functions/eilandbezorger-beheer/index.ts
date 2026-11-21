@@ -3,6 +3,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
+import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -14,7 +15,24 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('in_kassa'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
   z.object({ actie: z.literal('live'), vestiging: z.enum(['Midsland']), aan: z.boolean() }),
   z.object({ actie: z.literal('ronde') }),
+  z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']) }),
 ]);
+
+// Alleen-lezen: volledige Lightspeed-kaart Midsland ophalen, alle pagina's. Nooit schrijven.
+async function kaart(admin: any, bron: string) {
+  const t = await geldigToken(admin, 'Midsland');
+  if ('error' in t) return { fout: t.error };
+  const uit: unknown[] = [];
+  for (let offset = 0; offset < 5000; offset += 100) {
+    const r = await fetch(`https://lightspeedapis.com/resto/rest/inventory/${bron}?amount=100&offset=${offset}`, { method: 'GET', headers: { Authorization: `Bearer ${t.token}`, Accept: 'application/json' } });
+    const tekst = await r.text();
+    if (!r.ok) return { fout: `lightspeed ${r.status}`, detail: tekst.slice(0, 300), opgehaald: uit.length };
+    const j = JSON.parse(tekst); const lijst = Array.isArray(j) ? j : (j.results ?? j.data ?? []);
+    uit.push(...lijst);
+    if (!Array.isArray(lijst) || lijst.length < 100) break;
+  }
+  return { aantal: uit.length, items: uit };
+}
 
 async function claimVerzend(admin: any, r: any, van: string[], door?: string) {
   const c = await overgang(admin, r.id, r.versie, van, 'verzenden', {}, undefined, door);
@@ -66,6 +84,10 @@ Deno.serve(async (req) => {
     const eigenaar = (rollen ?? []).some((r: any) => ['owner', 'admin'].includes(r.role));
     const magVestiging = (v: string) => eigenaar || (rollen ?? []).some((r: any) => r.role === 'manager' && r.location === v);
 
+    if (a.actie === 'kaart') {
+      if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      return json(await kaart(admin, a.bron));
+    }
     if (a.actie === 'live') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
       // Aanzetten verstuurt niets automatisch: geblokkeerde bestellingen blijven staan tot vrijgave.

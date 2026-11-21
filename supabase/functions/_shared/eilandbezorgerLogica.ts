@@ -31,7 +31,7 @@ export const BestellingSchema = z.object({
       oorspronkelijk_cent: cent,
       korting_cent: cent,
       betaald_door: z.enum(['eilandbezorger', 'restaurant']),
-    }).optional(),
+    }).nullish(),
   }),
   betaling: z.object({ wijze: z.string().min(1).max(40), referentie: z.string().trim().max(80).optional() }),
 });
