@@ -1,46 +1,49 @@
-# Antwoord: Lightspeed-gegevens en mogelijkheden (niets gewijzigd)
+# Eilandbezorger: vaste klant en gastnaam per bestelling
 
-Er hoeft niets gebouwd te worden. Bij elk punt staat [code] als ik het in de code of database heb gezien, en [vermoeden] als ik het niet heb gecontroleerd.
+## Resultaat
+Alle Midsland-orders gebruiken één configureerbare Lightspeed-klant ‘Eilandbezorger’. Karin levert alleen voornaam + achternaam aan, of de bestaande volledige naam. Geen gastprofielen, geen klantacties en geen contactgegevens in nieuwe opgeslagen berichten of logs.
 
-## 1. Wat de app nu ophaalt
-- Bron: één Lightspeed L-Series-adres, de bonnenlijst (financial/receipt), per dag en per 50 bonnen. [code]
-- **omzet_uren**: omzet per werkdag per uur, met en zonder btw, plus het aantal bonnen. Midsland vanaf 31-12-2024, West vanaf 01-01-2025, tot en met vandaag. [code]
-- **kassa_verkoop_dag**: per dag per product het aantal en de omzet, met en zonder btw. Beide vestigingen vanaf 01-01-2025. [code]
-- Losse bonnen worden niet bewaard. Ze worden opgehaald, opgeteld en daarna weggegooid. [code]
-- Verversen: Midsland elke 30 minuten, West om :05 en :35. Elke nacht een controle (01:30 en 01:35 UTC) en een dagelijkse sync om 05:15 UTC. [code]
+- `description`: `EB-TEST-20261122-120013 — Sanne de Vries`.
+- `note`: exact `Saus apart`, inclusief oorspronkelijke spaties als Karin die meestuurt.
+- Ontbrekende e-mail, telefoon of klantcode blokkeren nooit; meegestuurde contactvelden worden genegeerd.
+- Ontbrekende vaste klant-ID blokkeert alleen kassaverzending, niet ontvangst of testmodus.
 
-## 2. Wat er al is of zonder nieuwe toestemming kan
-De toestemming is gevraagd zonder speciale rechten [code]. Welke gegevens Lightspeed daarmee geeft, is per onderdeel niet getest [vermoeden].
-- a. Bonnen met tijdstippen: zitten in de opgehaalde gegevens, maar worden niet bewaard. Het openingstijdstip (creationDate) en het laatste wijzigingstijdstip (modificationDate) zijn er. Het sluittijdstip (closingDate) is bij jullie altijd leeg; daarom gebruiken we het wijzigingstijdstip als afrekenmoment. [code]
-- b. Bonregels per product: product, aantal en prijs zijn er, maar zonder eigen tijdstip; ze krijgen het tijdstip van de bon. [code]
-- c. Gasten/couverts: niet gebruikt. Zit waarschijnlijk wel in de bon. [vermoeden]
-- d. Tafel/plattegrond: niet gebruikt. De tafel staat waarschijnlijk op de bon; de plattegrond kan via een apart onderdeel van Lightspeed. [vermoeden]
-- e. Betaalwijze en fooi: niet bewaard. Betalingen staan waarschijnlijk op de bon; fooi is onzeker. [vermoeden]
-- f. Artikelstam: wordt niet periodiek gesynct. Voor Eilandbezorger is de productkaart wel eenmalig, alleen-lezen opgehaald: 1154 producten, groepen, prijzen en extra's. Dat lukte met de bestaande toegang. [code] Btw per product niet gecontroleerd. [vermoeden]
-- g. Kortingen, retouren en annuleringen: negatieve regels tellen mee in de omzet, zonder aparte behandeling. Alleen bonnen met status PAID, DONE of ACCEPTED tellen mee; andere statussen vallen weg. Kortingsvelden worden niet gelezen. [code]
+## Werkzaamheden
+Categorie: **edge function / logic / data-verwerking**, geen UI- of RLS-wijziging.
 
-## 3. Tussenweg nu, en wat uitbreiden zou kosten
-- Nu: één bericht per vestiging met per dag (hooguit 3 dagen):
-  - dag en opgehaald_op;
-  - uren: uur, omzet met en zonder btw, aantal bonnen;
-  - producten: product-ID, naam, aantal, omzet met en zonder btw. [code]
-- Moment: elke 30 minuten (:10 en :40), en gisteren nog eens na de nacht-sync. Bij een storing één herhaling na 60 seconden; mislukte dagen schuiven door naar de volgende ronde. De laatste test gaf nog een 404 bij de ontvanger. [code]
-- Bonnen en bonregels toevoegen kost ongeveer 1,5 tot 2,5 dag [vermoeden]:
-  - de bonnen bewaren in twee nieuwe tabellen (bonnen, bonregels) met een vaste sleutel per bon;
-  - het doorsturen uitbreiden en de berichten opdelen per dag (er is al een terugval bij te grote berichten);
-  - tests schrijven;
-  - afspreken met de ontvanger welk formaat ze verwachten.
-- Risico: de opslag groeit, ruwweg enkele duizenden bonnen per week in het seizoen [vermoeden]. De huidige omzetberekening blijft gewoon werken.
+1. Ontvangstvalidatie en opslag aanpassen: opgeschoonde invoer bewaren in plaats van het ruwe bericht; gastnaam orderspecifiek in de omschrijving.
+2. Historische duplicaten herkennen door opgeslagen invoer met dezelfde nieuwe normalisatie te vergelijken. Gewijzigde naam, producten, bedragen of opmerking blijven conflicten; bestaande unieke sleutel, tijdcontrole, atomaire claims en onzekerheidsbeveiliging blijven behouden. Historische orders en vingerafdrukken niet wijzigen.
+3. Gastklantzoek-/aanmaakcode uit de verzendweg verwijderen; vaste klant-ID vóór kassatoegang controleren. Betaal- en productcontroles behouden, inclusief één betalingsobject en exact €21 voor de frietproef.
+4. Aansluitinstructie en gerichte lokale tests actualiseren. Alleen de benodigde Eilandbezorger-functies uitrollen na succesvolle tests; geen frontendpublicatie.
 
-## 4. Bezorgkoppeling (Eilandbezorger)
-- Die gebruikt dezelfde Lightspeed-toegang: dezelfde app-registratie, dezelfde koppeling per vestiging en een gedeelde vernieuwing van de toegang (met een slot zodat ze niet botsen). [code]
-- Een extra, eigen koppeling ernaast:
-  - een aparte app-registratie heeft eigen toegang en zit de bestaande twee niet in de weg;
-  - een tweede toestemming op dezelfde registratie kan de huidige toegang ongeldig maken, dus dat niet doen. [vermoeden]
-  - Aanvraaglimieten gelden waarschijnlijk per account en worden dan gedeeld. [vermoeden]
+## Bestanden en tabellen
+- `supabase/functions/eilandbezorger-bestelling/index.ts`
+- `supabase/functions/eilandbezorger-beheer/index.ts` (controle bij vrijgave)
+- `supabase/functions/_shared/eilandbezorgerLogica.ts`, `eilandbezorgerVerzend.ts`, `eilandbezorgerKlant.ts` en bijbehorende Eilandbezorger-tests
+- `docs/eilandbezorger-aansluiting.md`, bestaande architectuurregel in `AGENTS.md`, `roadmap.md`
+- **Geen migraties, wijzigingen aan tabellen/RLS/instellingen of nieuwe libraries.** Hergebruik `externe_kassa_config.lightspeed_klant_id`; bestaande historische klantkoppelingen blijven staan, maar worden niet meer gebruikt.
 
-## 5. Grenzen
-- Limieten: de code wacht als Lightspeed "te veel aanvragen" (429) of een serverfout geeft, en houdt zich aan de opgegeven wachttijd. Tussen dagen zit 250 ms pauze en er is een maximum van 500 pagina's per dag. Lightspeed noemt geen vaste limiet. [code]
-- Vertraging: gegevens zijn tot ongeveer 30 minuten oud, en de tussenweg komt daar nog 5 tot 10 minuten achteraan. Een bon die nog openstaat telt pas mee als hij afgerekend is. [code]
-- Dagwissel: de werkdag kantelt om 06:00 Amsterdamse tijd. Een bon van 01:00 hoort dus bij de vorige dag. [code]
-- Twee vestigingen: elk heeft een eigen koppeling (Midsland 36864, West 41121) en eigen sync-taken. Een fout bij de ene vestiging stopt de andere niet. Een gesloten dag levert gewoon geen gegevens. [code]
+## Lokale verificatie, zonder echte kassatoegang
+Gebruik Sanne de Vries, 3× Zoete Aardappel Friet à €7, totaal €21, ‘Saus apart’ en `korting: null`.
+- Testmodus: `test_ok`, nul kassatoegang.
+- Gesimuleerde liveweg met vaste klant: juiste customerId, omschrijving/notitie en €21 betaald; nul klantzoek-/aanmaak-/wijzigingsacties.
+- Gesimuleerde liveweg zonder vaste klant: geblokkeerd met duidelijke reden, nul kassatoegang.
+- Volledige naam als alternatief; ontbrekende of onbruikbare contactvelden veroorzaken geen blokkade en komen niet in opslag/verzending.
+- Historische herhaling inclusief oude contactvelden geeft bestaande order terug; gewijzigde inhoud geeft conflict. Test/live blijven gescheiden.
+- Bestaande prijs-, korting-, betaal-, gelijktijdigheids- en timeouttests uitvoeren.
+
+## Huidige instellingen: alleen-lezen bevestigd
+- Midsland-livevlag: **uit**; blijft uit.
+- Vaste klant-ID: ontbreekt.
+- Betaalwijze-ID en betaalwijze-type-ID: ontbreken in de koppeling.
+- Orderroute: `customer_order`; company-ID leeg (niet nodig voor deze variant).
+- Of de bestaande betaalwijze ‘eilandbezorger’ in Lightspeed actief/correct ingesteld is, is hiermee **niet bevestigd**. Geen Lightspeed-aanroep in deze opdracht; voor de fysieke proef zijn de juiste IDs en bevestiging nodig.
+
+## Praktijk, risico’s en resterende proef
+Karin hoeft geen contactgegevens meer aan te leveren. Zonder juiste klant-/betaalinstellingen blijven live-orders geblokkeerd; niemand hoeft ontbrekende gastgegevens aan te vullen.
+
+Historische herhalingen kunnen bij foutieve normalisatie onterecht conflicteren of wijzigingen doorlaten: daarom concrete regressietests vóór uitrol. Een verkeerde vaste klant-ID koppelt orders aan de verkeerde klant: Yorick moet de gekozen ID voor de proef bevestigen.
+
+Naam in description bewijst niet dat hij op keukenbon én klantbon wordt afgedrukt. Afdruk op beide bonnen, éénmalig printen, €0 open en automatisch afslaan blijven uitsluitend onderdeel van de begeleide kassaproef. Bij een onzekere uitkomst nooit automatisch opnieuw sturen.
+
+Historische testorders blijven staan. Geen echte orders, klantacties of nieuwe testregels in de database.

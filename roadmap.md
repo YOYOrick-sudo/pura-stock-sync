@@ -1,3 +1,3 @@
 # Roadmap
-- [x] Eilandbezorger: één Lightspeed-klant per gast, notitie per order, betaling als object (Midsland)
+- [ ] Eilandbezorger: vaste Midsland-klant, gastnaam per order, contactgegevens weglaten, historische duplicaten behouden, lokale tests en instructie — wacht op planakkoord
 - [ ] Begeleide kassaproef friet — wacht op klant-/betaalwijze-ID en backoffice-instellingen van Yorick
