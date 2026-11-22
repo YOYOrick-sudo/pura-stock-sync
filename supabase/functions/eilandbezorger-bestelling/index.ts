@@ -5,7 +5,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { BestellingSchema, OphaaltijdSchema, VESTIGING_PER_MERCHANT, beginStatus, controleer, gelijkeSleutel, orderbericht, vingerafdruk, zelfdeBestelling, kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { meld, verzend } from '../_shared/eilandbezorgerVerzend.ts';
-import { PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
+import { isProef } from '../_shared/eilandbezorgerProef.ts';
 
 const cors = { ...corsHeaders, 'Access-Control-Allow-Headers': `${corsHeaders['Access-Control-Allow-Headers']}, x-eilandbezorger-sleutel`, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     }
     if (req.method !== 'POST') return json({ fout: 'methode niet toegestaan' }, 405);
     let ruw: any; try { ruw = await req.json(); } catch { return json({ fout: 'geen geldige JSON' }, 400); }
-    if (typeof ruw?.bestelnummer === 'string' && ruw.bestelnummer.trim() === PROEF_REFERENTIE) return json({ fout: 'Deze referentie is uitsluitend voor de eenmalige eigenaarproef gereserveerd.' }, 403);
+    if (typeof ruw?.bestelnummer === 'string' && isProef({ extern_id: ruw.bestelnummer.trim() })) return json({ fout: 'Deze referentie is uitsluitend voor de eenmalige eigenaarproef gereserveerd.' }, 403);
 
     if (ruw?.actie === 'ophaaltijd') {
       const p = OphaaltijdSchema.safeParse(ruw);
