@@ -20,7 +20,13 @@ export const DERDE_PROEF = {
   pogingId: '92c7c738-118c-4758-89b5-7b56bb33ab03',
   vrijgave: Symbol('owner-only-ginger-beer-gb03'),
 } as const;
-export type VasteProef = typeof EERSTE_PROEF | typeof TWEEDE_PROEF | typeof DERDE_PROEF;
+export const VIERDE_PROEF = {
+  referentie: 'PV-PROEF-MID-20261122-GB04',
+  orderId: '1dce54a7-fd15-49c2-a3a4-3b574684ab04',
+  pogingId: '1d936bfb-98c8-4daf-b394-b4a7f691ab04',
+  vrijgave: Symbol('owner-only-ginger-beer-gb04'),
+} as const;
+export type VasteProef = typeof EERSTE_PROEF | typeof TWEEDE_PROEF | typeof DERDE_PROEF | typeof VIERDE_PROEF;
 
 export const PROEF_HERVATTING = Symbol('eerste-ongezonden-proef-hervatten');
 export const PROEF_OWNER_ID = '9b59d031-86b2-45c1-882c-ab222c6bbf66';
@@ -29,7 +35,7 @@ export const PROEF_EERSTE_HASH = '66b58a21487145e5ab2045f71ac7f5ee4995e2df680504
 export const PROEF_BLOKKADE = 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
 export const PROEF_HERVAT_REDEN = 'Eenmalige hervatting van eerste ongezonden fysieke proef; gewone liveverzending blijft uit.';
 export function herkenProef(r: { extern_id?: string; referentie?: string; id?: string } | null | undefined) {
-  return [EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF].find(p => r?.extern_id === p.referentie || r?.referentie === p.referentie || r?.id === p.orderId);
+  return [EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF].find(p => r?.extern_id === p.referentie || r?.referentie === p.referentie || r?.id === p.orderId);
 }
 export const isProef = (r: any) => herkenProef(r) !== undefined;
 
@@ -68,13 +74,13 @@ export async function proefControle(admin: any, nu: number, proef: VasteProef = 
   if (!controle.ok) return { fout: controle.reden };
   const r = controle.regels[0];
   if (controle.regels.length !== 1 || r.lightspeed_product_id !== '4636894' || r.stukprijs_cent !== 490 || r.naam !== 'Naturfrisk Ginger beer' || r.extras.length) return { fout: 'De actieve Ginger Beer-koppeling moet exact 4636894 en 490 cent zijn.' };
-  if (proef === TWEEDE_PROEF || proef === DERDE_PROEF) {
+  if (proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF) {
     if (cfg.merchant_id !== '36864' || cfg.lightspeed_klant_id !== '13597022' ||
       cfg.lightspeed_company_id !== null || cfg.venster_minuten !== 45 || r.lightspeed_plu !== 'Kd-a11') {
       return { fout: 'De bevestigde Midsland-configuratie voor de vaste vervolgproef is gewijzigd.' };
     }
     if (!await eersteProefGeweigerd(admin)) return { fout: 'De oorspronkelijke eenmalige parserweigering is niet bevestigd.' };
-    if (proef === DERDE_PROEF && !await tweedeProefGeweigerd(admin)) return { fout: 'De eenmalige GB02-nettoprijsweigering is niet bevestigd.' };
+    if ((proef === DERDE_PROEF || proef === VIERDE_PROEF) && !await tweedeProefGeweigerd(admin)) return { fout: 'De eenmalige GB02-nettoprijsweigering is niet bevestigd.' };
   }
   return { cfg, b, regels: controle.regels };
 }

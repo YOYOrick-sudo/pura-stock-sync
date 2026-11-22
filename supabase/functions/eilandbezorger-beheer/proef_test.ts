@@ -1,7 +1,7 @@
 // Lokale volledige beheer-/ontvangweg. Geen netwerkrechten of echte database.
 import { assertEquals } from 'jsr:@std/assert@1';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF, DERDE_PROEF } from '../_shared/eilandbezorgerProef.ts';
+import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF } from '../_shared/eilandbezorgerProef.ts';
 import { verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { mockKaart } from '../_shared/eilandbezorgerPrijsFixtures.ts';
 type Rij = Record<string, any>;
@@ -338,4 +338,111 @@ for (const [naam, wijzig] of [
   metBeideWeigeringen(t); naBericht(() => wijzig(t));
   assertEquals((await (await post(gb03)).json()).status, 'geblokkeerd');
   assertEquals(kassa.length, 0); assertEquals(t.externe_bestelling_poging[2].uitkomst, 'niet_verstuurd');
+}));
+
+
+const gb04 = { actie: 'ginger_beer_proef_gb04', referentie: VIERDE_PROEF.referentie, bevestiging: true };
+ Deno.test('GB04 verstrijken van 45 minuten vóór POST blokkeert zonder herhaling', async () => lokaal(async ({ t, post, naBericht, kassa }) => {
+  metDrieProeven(t);
+  naBericht(() => { Date.now = () => NU + 46 * 60_000; });
+  assertEquals((await (await post(gb04)).json()).status, 'geblokkeerd');
+  assertEquals(kassa.length, 0);
+  assertEquals(t.externe_bestelling_poging[3].uitkomst, 'niet_verstuurd');
+  assertEquals((await post(gb04)).status, 409);
+  assertEquals(kassa.length, 0);
+}));
+ Deno.test('GB04 ontbrekende vaste klant of West-configuratie blokkeert zonder opslag', async () => lokaal(async ({ t, post, kassa }) => {
+  metDrieProeven(t);
+  t.externe_kassa_config[0].lightspeed_klant_id = null;
+  assertEquals((await post(gb04)).status, 409);
+  t.externe_kassa_config[0].lightspeed_klant_id = '13597022';
+  t.externe_kassa_config[0].merchant_id = '41121';
+  assertEquals((await post(gb04)).status, 409);
+  assertEquals(t.externe_bestellingen.length, 3);
+  assertEquals(t.externe_bestelling_poging.length, 3);
+  assertEquals(kassa.length, 0);
+}));
+function metDrieProeven(t: Record<string, Rij[]>) {
+  metBeideWeigeringen(t);
+  t.externe_bestellingen.push({ id: DERDE_PROEF.orderId, extern_id: DERDE_PROEF.referentie, referentie: DERDE_PROEF.referentie,
+    vestiging: 'Midsland', merchant_id: '36864', modus: 'live', status: 'verzonden', lightspeed_order_id: '19944303' });
+  t.externe_bestelling_poging.push({ id: DERDE_PROEF.pogingId, bestelling_id: DERDE_PROEF.orderId, soort: 'verzenden',
+    uitkomst: 'verzonden', http_status: 201, antwoord: '{"id":19944303}' });
+}
+
+Deno.test('GB04 exact één Ginger Beer €4,90 met btw en betaalarray; parallel/retry nooit tweede POST', async () => lokaal(async ({ t, post, partner, kassa }) => {
+  metDrieProeven(t);
+  const historie = structuredClone([t.externe_bestellingen, t.externe_bestelling_poging]);
+  assertEquals((await partner(proefInvoer(NU, VIERDE_PROEF))).status, 403);
+  assertEquals((await partner({ actie: 'ophaaltijd', bestelnummer: VIERDE_PROEF.referentie, modus: 'live', vestiging: '36864', ophaaltijd: new Date(NU).toISOString() })).status, 403);
+  assertEquals((await post(gb04, false)).status, 401);
+  assertEquals((await Promise.all([post(gb04), post(gb04)])).map(r => r.status).sort(), [200, 409]);
+  assertEquals((await post(gb04)).status, 409);
+  assertEquals(kassa.length, 1);
+  assertEquals(kassa[0].externalReference, 'PV-PROEF-MID-20261122-GB04');
+  assertEquals(kassa[0].description, 'PV-PROEF-MID-20261122-GB04 — Pura Test');
+  assertEquals(kassa[0].note, 'TEST – niet klaarmaken');
+  assertEquals(kassa[0].deliveryDate, new Date(NU).toISOString());
+  assertEquals(kassa[0].orderItems, [{ productId: 4636894, amount: 1, unitPrice: 4.9, totalPrice: 4.9, unitPriceWithoutVat: 4.4954, totalPriceWithoutVat: 4.5, modifiers: [], subitems: [] }]);
+  assertEquals(kassa[0].orderPayments, [{ amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
+  assertEquals(t.externe_bestellingen[3].id, VIERDE_PROEF.orderId);
+  assertEquals(t.externe_bestelling_poging[3].id, VIERDE_PROEF.pogingId);
+  assertEquals([t.externe_bestellingen.slice(0, 3), t.externe_bestelling_poging.slice(0, 3)], historie);
+  assertEquals(t.fase2_vlag[0].aan, false);
+  t.fase2_vlag[0].aan = true;
+  assertEquals((await post({ actie: 'herverzenden', id: VIERDE_PROEF.orderId, bevestiging: true, reden: 'Geen herhaling van proef' })).status, 409);
+  assertEquals((await post({ actie: 'vrijgeven', id: VIERDE_PROEF.orderId })).status, 409);
+  assertEquals(kassa.length, 1);
+}));
+
+for (const [naam, wijzig] of [
+  ['ander eigenaaraccount', (t: Record<string, Rij[]>) => { t.user_roles[0].user_id = 'andere-owner'; }],
+  ['manager', (t: Record<string, Rij[]>) => { t.user_roles[0].role = 'manager'; }],
+  ['live aan', (t: Record<string, Rij[]>) => { t.fase2_vlag[0].aan = true; }],
+  ['andere vaste klant', (t: Record<string, Rij[]>) => { t.externe_kassa_config[0].lightspeed_klant_id = '555'; }],
+  ['ander betaaltype', (t: Record<string, Rij[]>) => { t.externe_kassa_config[0].lightspeed_betaalwijze_type_id = '3'; }],
+  ['andere prijs', (t: Record<string, Rij[]>) => { t.externe_product_koppeling[0].prijs_cent = 491; }],
+  ['GB01 niet definitief', (t: Record<string, Rij[]>) => { t.externe_bestellingen[0].status = 'uitkomst_onbekend'; }],
+  ['GB02 niet definitief', (t: Record<string, Rij[]>) => { t.externe_bestellingen[1].status = 'uitkomst_onbekend'; }],
+  ['GB02 order-ID aanwezig', (t: Record<string, Rij[]>) => { t.externe_bestellingen[1].lightspeed_order_id = '8000'; }],
+  ['GB02 poging ontbreekt', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging.splice(1, 1); }],
+  ['GB02 twee pogingen', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging.push({ ...t.externe_bestelling_poging[1], id: 'extra' }); }],
+  ['GB02 andere HTTP-code', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging[1].http_status = 500; }],
+  ['GB02 andere fout', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging[1].antwoord = '{"errors":["andere fout"]}'; }],
+  ['GB04 permanente poging bestaat', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging.push({ id: VIERDE_PROEF.pogingId, bestelling_id: 'ander' }); }],
+  ['GB04 poging op order bestaat', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging.push({ id: 'ander', bestelling_id: VIERDE_PROEF.orderId }); }],
+  ['GB04 testorder bestaat', (t: Record<string, Rij[]>) => { t.externe_bestellingen.push({ id: 'test', extern_id: VIERDE_PROEF.referentie, merchant_id: '36864', modus: 'test', status: 'test_ok' }); }],
+] as const) Deno.test('GB04 blokkeert zonder POST: ' + naam, async () => lokaal(async ({ t, post, kassa }) => {
+  metDrieProeven(t); wijzig(t);
+  const historie = structuredClone([t.externe_bestellingen, t.externe_bestelling_poging]);
+  const r = await post(gb04); assertEquals(r.status, naam === 'manager' ? 403 : 409);
+  assertEquals(kassa.length, 0);
+  assertEquals([t.externe_bestellingen, t.externe_bestelling_poging], historie);
+}));
+
+for (const mode of ['timeout', 'weigering']) Deno.test('GB04 ' + mode + ' nooit opnieuw verzenden', async () => lokaal(async ({ t, post, fout, kassa }) => {
+  metDrieProeven(t); fout(mode);
+  assertEquals((await (await post(gb04)).json()).status, mode === 'timeout' ? 'uitkomst_onbekend' : 'geweigerd');
+  assertEquals((await post(gb04)).status, 409);
+  const rij = t.externe_bestellingen[3]; rij.status = 'verzenden'; rij.versie = 2;
+  await verzend(createClient('http://127.0.0.1:9876', 'lokaal'), { ...rij }, fetch, VIERDE_PROEF.vrijgave);
+  assertEquals(kassa.length, 1); assertEquals(t.externe_bestelling_poging.length, 4);
+}));
+
+Deno.test('GB04 weigert verlopen Amsterdamse datum en gewijzigde opdracht', async () => lokaal(async ({ t, post, kassa }) => {
+  metDrieProeven(t);
+  for (const b of [{ ...gb04, bevestiging: false }, { ...gb04, referentie: 'ANDER' }, { ...gb04, regels: [] }]) assertEquals((await post(b)).status, 400);
+  Date.now = () => Date.parse('2026-11-22T23:00:00Z');
+  assertEquals((await post(gb04)).status, 409); assertEquals(kassa.length, 0);
+}));
+
+for (const [naam, wijzig] of [
+  ['eigenaarsrol ingetrokken', (t: Record<string, Rij[]>) => { t.user_roles[0].is_active = false; }],
+  ['live aangezet', (t: Record<string, Rij[]>) => { t.fase2_vlag[0].aan = true; }],
+  ['klant gewijzigd', (t: Record<string, Rij[]>) => { t.externe_kassa_config[0].lightspeed_klant_id = '555'; }],
+  ['opgeslagen inhoud gewijzigd', (t: Record<string, Rij[]>) => { t.externe_bestellingen[3].invoer.klant.naam = 'Andere gast'; }],
+] as const) Deno.test('GB04 laatste controle blokkeert: ' + naam, async () => lokaal(async ({ t, post, naBericht, kassa }) => {
+  metDrieProeven(t); naBericht(() => wijzig(t));
+  assertEquals((await (await post(gb04)).json()).status, 'geblokkeerd');
+  assertEquals(kassa.length, 0); assertEquals(t.externe_bestelling_poging[3].uitkomst, 'niet_verstuurd');
 }));
