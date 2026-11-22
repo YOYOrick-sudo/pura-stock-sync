@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Eilandbezorger btw-correctie: bevestigde bezorgprijzen gebruiken, onzekere prijzen vóór een kassapoging blokkeren, onderschepte regressietests en uitsluitend twee kassafuncties uitrollen; geen fysieke proef.
 - [x] Eerste Ginger Beer-proef: strikte jsonb-vergelijking hersteld, veilige expliciete hervatting getest (147 tests), alleen beheerfunctie uitgerold; echte rij versie 3/geblokkeerd, nul pogingen en live uit gebleven.
 - [x] Eenmalige Ginger Beer-kassaproef voorbereid: owner-only vaste opdracht, blijvende tweede-POST-blokkade, 82 lokale tests, alleen twee betrokken functies uitgerold; live uit, nul proeforders. Vaste klant-ID bij eindcontrole aanwezig, in deze beurt niet gewijzigd.
 - [ ] Eerste Ginger Beer-proef hervatten — wacht op nieuwe expliciete uitvoeropdracht; vaste klant bevestigd, oorspronkelijke afhaaltijd geldt tot 17:23:29.908 Amsterdam op 22 november 2026; afdruk/automatisch afslaan pas fysiek controleren.
