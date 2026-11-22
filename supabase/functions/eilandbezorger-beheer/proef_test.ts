@@ -91,6 +91,15 @@ for (const role of ['manager', 'staff']) Deno.test(`proef weigert ${role}`, asyn
   t.user_roles[0].role = role; assertEquals((await post()).status, 403); assertEquals(kassa.length, 0); assertEquals(t.externe_bestellingen.length, 0);
 }));
 Deno.test('partner-sleutel verleent geen beheer-vrijgave', async () => lokaal(async ({ post, kassa }) => { assertEquals((await post(opdracht, false)).status, 401); assertEquals(kassa.length, 0); }));
+for (const role of ['manager', 'staff']) Deno.test(`hervattingsactie weigert ${role}`, async () => lokaal(async ({ post, t, kassa }) => {
+  t.user_roles[0].role = role; assertEquals((await post({ ...opdracht, actie: 'ginger_beer_proef_hervatten' })).status, 403); assertEquals(kassa.length, 0);
+}));
+Deno.test('partner-sleutel verleent geen hervattingstoegang', async () => lokaal(async ({ post, kassa }) => {
+  assertEquals((await post({ ...opdracht, actie: 'ginger_beer_proef_hervatten' }, false)).status, 401); assertEquals(kassa.length, 0);
+}));
+Deno.test('hervatting zonder expliciete bevestiging geweigerd', async () => lokaal(async ({ post, kassa }) => {
+  assertEquals((await post({ ...opdracht, actie: 'ginger_beer_proef_hervatten', bevestiging: false })).status, 400); assertEquals(kassa.length, 0);
+}));
 Deno.test('partner kan vaste referentie niet ontvangen of tijd wijzigen', async () => lokaal(async ({ partner, kassa, t }) => {
   assertEquals((await partner(proefInvoer(NU))).status, 403);
   assertEquals((await partner({ actie: 'ophaaltijd', bestelnummer: PROEF_REFERENTIE, modus: 'live', vestiging: '36864', ophaaltijd: new Date(NU).toISOString() })).status, 403);

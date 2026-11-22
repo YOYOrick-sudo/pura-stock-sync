@@ -7,11 +7,12 @@ import { kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { isProef, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
-import { gingerBeerProef } from './proef.ts';
+import { gingerBeerProef, hervatGingerBeerProef } from './proef.ts';
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('ginger_beer_proef'), referentie: z.literal(PROEF_REFERENTIE), bevestiging: z.literal(true) }).strict(),
+  z.object({ actie: z.literal('ginger_beer_proef_hervatten'), referentie: z.literal(PROEF_REFERENTIE), bevestiging: z.literal(true) }).strict(),
   z.object({ actie: z.literal('annuleren'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
   z.object({ actie: z.literal('vrijgeven'), id: z.string().uuid(), tijd_voorbij_akkoord: z.boolean().optional() }),
   z.object({ actie: z.literal('teruglezen'), id: z.string().uuid() }),
@@ -113,9 +114,9 @@ Deno.serve(async (req) => {
     const eigenaar = (rollen ?? []).some((r: any) => ['owner', 'admin'].includes(r.role));
     const magVestiging = (v: string) => eigenaar || (rollen ?? []).some((r: any) => r.role === 'manager' && r.location === v);
 
-    if (a.actie === 'ginger_beer_proef') {
+    if (a.actie === 'ginger_beer_proef' || a.actie === 'ginger_beer_proef_hervatten') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
-      const uit = await gingerBeerProef(admin, u.user.id);
+      const uit = a.actie === 'ginger_beer_proef_hervatten' ? await hervatGingerBeerProef(admin, u.user.id) : await gingerBeerProef(admin, u.user.id);
       return json(uit, 'fout' in uit ? 409 : 200);
     }
 

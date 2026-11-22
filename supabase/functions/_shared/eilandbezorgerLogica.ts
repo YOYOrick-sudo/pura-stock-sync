@@ -62,6 +62,16 @@ function sorteer(v: unknown): unknown {
   if (v && typeof v === 'object') return Object.fromEntries(Object.keys(v as object).sort().map((k) => [k, sorteer((v as any)[k])]));
   return v;
 }
+/** JSON-inhoud: alleen objectsleutelvolgorde negeren; geen coercion of weggefilterde waarden. */
+export function gelijkJson(a: unknown, b: unknown): boolean {
+  const geldig = (v: unknown): boolean => {
+    if (v === null || typeof v === 'string' || typeof v === 'boolean') return true;
+    if (typeof v === 'number') return Number.isFinite(v);
+    if (Array.isArray(v)) return Array.from(v).every(geldig);
+    return typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype && Object.values(v).every(geldig);
+  };
+  return geldig(a) && geldig(b) && JSON.stringify(sorteer(a)) === JSON.stringify(sorteer(b));
+}
 /** Inhoud zonder tijden: tijdswijziging loopt via de aparte ophaaltijd-actie. */
 export async function vingerafdruk(b: Bestelling): Promise<string> {
   const { ophaaltijd: _o, bezorgtijd: _b, ...rest } = b;

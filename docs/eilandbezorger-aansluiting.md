@@ -171,3 +171,18 @@ Controleer tijdens de begeleide fysieke proef:
 4. Bij onzeker antwoord: alleen status/pogingen uitlezen; geen tweede verzending. Afdruk op beide bonnen, betaalobjectverwerking en automatisch afslaan blijven fysiek onbevestigd.
 
 Geplande orders gaan pas door wanneer live aan staat en de instellingen compleet zijn. Kortingen blijven afgekeurd. Annuleren of wijzigen na verzending gaat telefonisch.
+
+## Herstel eerste vóór-verzendblokkade (22 november 2026)
+De eerste eigenaaractie om **16:38:30 Amsterdam** legde de echte rij vast maar blokkeerde vóór elke verzendpoging. De oorzaak was JSON-sleutelvolgorde na jsonb-uitlezing, niet een bewezen inhoudsverschil. De herstelcontrole negeert uitsluitend objectsleutelvolgorde; strikte waarden, extra/ontbrekende velden en nested arrayvolgorde blijven exact.
+
+**Alleen voorbereid. Planakkoord geeft geen uitvoertoestemming: wacht opnieuw op Yoricks expliciete hervattingsopdracht.** Gebruik daarna uitsluitend de bestaande Pura-client en eigenaaractie:
+```json
+{"actie":"ginger_beer_proef_hervatten","referentie":"PV-PROEF-MID-20261122-GB01","bevestiging":true}
+```
+Uitsluitend bestaande UUID `3c06328f-e0f1-4a10-8959-cad39ac7ab01`, versie 3, exacte reden/status `geblokkeerd` en oorspronkelijk auditpad. Geen nieuwe order of automatische hervatting door de oorspronkelijke actie. Invoer, oorspronkelijke toestemming, referentie, UUID en afhaaltijd blijven staan; alleen de atomaire overgang naar versie 4/status `verzenden` en de hervattingsaudit worden bij een later expliciet verzoek vastgelegd.
+
+Vereist: actieve oorspronkelijke eigenaar, klantkaart **13597022**, betaalwijze **285794/type 4**, product **4636894 / PV-0680E844**, PLU **Kd-a11**, 1× €4,90, live **false**, `customer_order`, company-ID `null` en venster 45 minuten. Zowel de permanente poging-ID als álle orderpogingen moeten ontbreken; order-ID, uitgaand bericht en uitgaande klantregistratie moeten `null` zijn. Een fout bij uitlezen blokkeert. Na de unieke pogingclaim mag vóór de POST uitsluitend die eigen poging bestaan. Geen reset, wissen, tweede referentie of tweede POST bij een storing.
+
+De bewaarde afhaaltijd is **16:38:29.908 Amsterdam**. Hervatting verloopt na **17:23:29.908 Amsterdam op 22 november 2026**, eerder dan de kalenderdaggrens; tijd en venster worden niet aangepast. Bij een storing na claim kan de proef ongezonden blijven: alleen rapporteren, niet automatisch opnieuw hervatten.
+
+Herstelvoorbereiding: **147 lokale tests geslaagd**, inclusief de werkelijke jsonb-volgorde, twee parallelle hervattingen, strikte inhoud/configuratie, alle eerdere pogingen en verloren antwoorden. Read-only database-roundtrip bevestigt beide JSON-objecten en exact alle zes productvelden. Alleen `eilandbezorger-beheer` is opnieuw uitgerold; geen echte hervattingsactie uitgevoerd. Eindcontrole: dezelfde rij staat op versie 3/`geblokkeerd`, nul pogingen, geen uitgaand bericht/order-ID, klant 13597022 en live uit.

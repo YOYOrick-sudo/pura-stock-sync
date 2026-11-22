@@ -1,10 +1,16 @@
-import { BestellingSchema, controleer, kassaBlokkade } from './eilandbezorgerLogica.ts';
+import { BestellingSchema, controleer, gelijkJson, kassaBlokkade } from './eilandbezorgerLogica.ts';
 
 export const PROEF_REFERENTIE = 'PV-PROEF-MID-20261122-GB01';
 export const PROEF_ORDER_ID = '3c06328f-e0f1-4a10-8959-cad39ac7ab01';
 export const PROEF_POGING_ID = '3c06328f-e0f1-4a10-8959-cad39ac7ab02';
 // Een interne capability, nooit een berichtveld of partner-/cron-sleutel.
 export const PROEF_VRIJGAVE = Symbol('owner-only-ginger-beer-20261122');
+export const PROEF_HERVATTING = Symbol('eerste-ongezonden-proef-hervatten');
+export const PROEF_OWNER_ID = '9b59d031-86b2-45c1-882c-ab222c6bbf66';
+export const PROEF_EERSTE_TIJD = '2026-11-22T15:38:29.908Z';
+export const PROEF_EERSTE_HASH = '66b58a21487145e5ab2045f71ac7f5ee4995e2df680504847cfa1f7447810fd0';
+export const PROEF_BLOKKADE = 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
+export const PROEF_HERVAT_REDEN = 'Eenmalige hervatting van eerste ongezonden fysieke proef; gewone liveverzending blijft uit.';
 export const isProef = (r: any) => r?.extern_id === PROEF_REFERENTIE || r?.referentie === PROEF_REFERENTIE || r?.id === PROEF_ORDER_ID;
 
 export function proefInvoer(nu: number) {
@@ -52,5 +58,38 @@ export function exacteProef(rij: any, nu: number, cfg: any, regels: unknown) {
     rij.restaurant_cent !== 490 || rij.bezorgkosten_cent !== 0 || rij.fooi_cent !== 0 || rij.korting !== null) return false;
   const tijd = Date.parse(rij.ophaaltijd);
   if (!Number.isFinite(tijd) || tijd > nu || nu - tijd > cfg.venster_minuten * 60_000) return false;
-  return JSON.stringify(p.data) === JSON.stringify(proefInvoer(tijd)) && JSON.stringify(rij.regels) === JSON.stringify(regels);
+  return gelijkJson(rij.invoer, proefInvoer(tijd)) && gelijkJson(p.data, proefInvoer(tijd)) && gelijkJson(rij.regels, regels);
+}
+
+/** Hervatting: de bevestigde configuratie en eerste proef mogen nergens afwijken. */
+export function eersteProef(rij: any, cfg: any, regels: unknown, nu: number) {
+  return exacteProef(rij, nu, cfg, regels) && rij.bron === 'eilandbezorger' &&
+    rij.bezorgtijd === null &&
+    rij.vrijgegeven_door === PROEF_OWNER_ID && rij.vingerafdruk === PROEF_EERSTE_HASH &&
+    Date.parse(rij.ophaaltijd) === Date.parse(PROEF_EERSTE_TIJD) &&
+    gelijkJson(rij.invoer, proefInvoer(Date.parse(PROEF_EERSTE_TIJD))) &&
+    cfg.lightspeed_klant_id === '13597022' && cfg.lightspeed_betaalwijze_id === '285794' &&
+    cfg.lightspeed_betaalwijze_type_id === '4' && cfg.lightspeed_company_id === null && cfg.order_route === 'customer_order' && cfg.venster_minuten === 45 &&
+    Array.isArray(regels) && regels.length === 1 && regels[0].lightspeed_plu === 'Kd-a11';
+}
+
+/** Vóór claim: geen enkele poging. Na claim: uitsluitend onze eigen permanente poging. */
+export async function proefPogingen(admin: any, eigenPoging = false) {
+  const [alle, permanent] = await Promise.all([
+    admin.from('externe_bestelling_poging').select('id, bestelling_id, soort, versie, uitkomst').eq('bestelling_id', PROEF_ORDER_ID),
+    admin.from('externe_bestelling_poging').select('id, bestelling_id, soort, versie, uitkomst').eq('id', PROEF_POGING_ID),
+  ]);
+  if (alle.error || permanent.error || !Array.isArray(alle.data) || !Array.isArray(permanent.data)) return false;
+  if (!eigenPoging) return alle.data.length === 0 && permanent.data.length === 0;
+  const past = (p: any) => p.id === PROEF_POGING_ID && p.bestelling_id === PROEF_ORDER_ID && p.soort === 'verzenden' && p.uitkomst === 'bezig';
+  return alle.data.length === 1 && permanent.data.length === 1 && past(alle.data[0]) && past(permanent.data[0]);
+}
+
+export async function eersteProefAudit(admin: any) {
+  const { data, error } = await admin.from('externe_bestelling_log').select('van_status, naar_status, reden, door').eq('bestelling_id', PROEF_ORDER_ID).order('created_at', { ascending: true });
+  return !error && gelijkJson(data, [
+    { van_status: null, naar_status: 'ontvangen', reden: 'Eenmalige fysieke owner-proef; gewone liveverzending blijft uit.', door: PROEF_OWNER_ID },
+    { van_status: 'ontvangen', naar_status: 'verzenden', reden: 'Eenmalige fysieke owner-proef; gewone liveverzending blijft uit.', door: PROEF_OWNER_ID },
+    { van_status: 'verzenden', naar_status: 'geblokkeerd', reden: PROEF_BLOKKADE, door: null },
+  ]);
 }
