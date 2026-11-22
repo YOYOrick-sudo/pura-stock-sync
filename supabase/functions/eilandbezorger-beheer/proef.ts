@@ -1,11 +1,11 @@
-import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, type VasteProef, eersteProef, eersteProefAudit, proefControle, proefPogingen, PROEF_BLOKKADE, PROEF_EERSTE_HASH, PROEF_EERSTE_TIJD, PROEF_HERVAT_REDEN, PROEF_HERVATTING, PROEF_ORDER_ID, PROEF_OWNER_ID, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
+import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, type VasteProef, eersteProef, eersteProefAudit, proefControle, proefPogingen, PROEF_BLOKKADE, PROEF_EERSTE_HASH, PROEF_EERSTE_TIJD, PROEF_HERVAT_REDEN, PROEF_HERVATTING, PROEF_ORDER_ID, PROEF_OWNER_ID, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { vingerafdruk } from '../_shared/eilandbezorgerLogica.ts';
 import { overgang, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 
 /** Alleen na de bestaande auth.getUser + actieve eigenaarscontrole. Nooit bestaande rijen vrijgeven. */
 export async function gingerBeerProef(admin: any, eigenaarId: string, proef: VasteProef = EERSTE_PROEF) {
-  if ((proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF) && eigenaarId !== PROEF_OWNER_ID) return { fout: 'Deze proef is uitsluitend vrijgegeven door de oorspronkelijke eigenaar.' };
-  if ((proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF) && !await proefPogingen(admin, false, proef)) return { fout: `${proef === ZESDE_PROEF ? 'GB06' : proef === VIJFDE_PROEF ? 'GB05' : proef === VIERDE_PROEF ? 'GB04' : 'GB03'} heeft al een poging of kon niet veilig worden gecontroleerd; niet herhalen.` };
+  if ((proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF) && eigenaarId !== PROEF_OWNER_ID) return { fout: 'Deze proef is uitsluitend vrijgegeven door de oorspronkelijke eigenaar.' };
+  if ((proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF) && !await proefPogingen(admin, false, proef)) return { fout: `${proef === ZEVENDE_PROEF ? 'GB07' : proef === ZESDE_PROEF ? 'GB06' : proef === VIJFDE_PROEF ? 'GB05' : proef === VIERDE_PROEF ? 'GB04' : 'GB03'} heeft al een poging of kon niet veilig worden gecontroleerd; niet herhalen.` };
   const c = await proefControle(admin, Date.now(), proef);
   if ('fout' in c) return { fout: c.fout };
   const bestaand = await admin.from('externe_bestellingen').select('id, modus, status, referentie').eq('merchant_id', '36864').eq('extern_id', proef.referentie);
