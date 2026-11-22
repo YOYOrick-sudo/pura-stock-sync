@@ -30,11 +30,11 @@ function db(start: Record<string, any[]> = {}) {
 }
 
 // Alleen een orderverzoek is toegestaan. Klantacties laten de test falen.
-function kassa() {
+function kassa(route: 'order' | 'establishmentorder' = 'order') {
   const orders: any[] = []; const calls: string[] = [];
   const haal = (async (url: string, init?: RequestInit) => {
     calls.push(url);
-    if (!url.includes('/onlineordering/customer/901/order') || init?.method !== 'POST') throw new Error('Verboden klantactie');
+    if (new URL(url).pathname !== `/resto/rest/onlineordering/customer/901/${route}` || init?.method !== 'POST') throw new Error('Verboden klantactie');
     orders.push({ pad: new URL(url).pathname, body: JSON.parse(String(init.body)) });
     return Response.json({ id: 5000 + orders.length }, { status: 201 });
   }) as typeof fetch;
@@ -148,10 +148,25 @@ Deno.test('historische herhaling: gewijzigde operationele inhoud, modus, tijd of
   }
 });
 
-Deno.test('kassaproef: €21 als één betalingsobject, opmerking inclusief spaties ongewijzigd', () => {
+Deno.test('kassaproef: €21 in één betaalregel, opmerking inclusief spaties ongewijzigd', () => {
   const r = bestelling('EB-PROEF', '  Saus apart ');
-  assertEquals(Array.isArray(r.orderbericht.orderPayments), false);
-  assertEquals((r.orderbericht.orderPayments as any).amount, 21);
-  assertEquals((r.orderbericht.orderPayments as any).paymentTypeId, 77);
+  assertEquals(r.orderbericht.orderPayments, [{ amount: 21, paymentTypeId: 77, paymentTypeTypeId: 3, tip: 0 }]);
   assertEquals(betaaldInBericht(r.orderbericht), 2100); assertEquals(r.orderbericht.note, '  Saus apart ');
+});
+
+Deno.test('establishmentorder verzendt één betaalregel op de vestigingsroute', async () => {
+  const d = db();
+  const k = kassa('establishmentorder');
+  d.t.externe_kassa_config[0].order_route = 'establishment_order';
+  d.t.externe_kassa_config[0].lightspeed_company_id = '42';
+  const rij = bestelling('EB-VESTIGING', 'Saus apart');
+  rij.regels[0].lightspeed_plu = 'F-a12';
+
+  const resultaat = await verzend(d, voeg(d, rij), k.haal);
+  assertEquals(resultaat.status, 'verzonden');
+  assertEquals(k.calls.length, 1);
+  const body = k.orders[0].body;
+  assertEquals(body.companyId, 42);
+  assertEquals(body.orderItems[0].productPlu, 'F-a12');
+  assertEquals(body.orderPayments, [{ amount: 21, paymentTypeId: 77, paymentTypeTypeId: 3, tip: 0 }]);
 });

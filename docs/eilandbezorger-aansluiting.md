@@ -115,7 +115,7 @@ Annuleren of wijzigen ná verzending: telefonisch met het restaurant.
 - Ontbreekt de vaste klant-ID, dan blijft ontvangst werken en blijft een geldige test `test_ok`; alleen kassaverzending wordt geblokkeerd met “Vaste Lightspeed-klant Eilandbezorger voor Midsland ontbreekt.”
 - `description`: bestelnummer + ` — ` + gastnaam, bijvoorbeeld `EB-TEST-20261122-120013 — Sanne de Vries`.
 - `note`: Karins opmerking exact, bijvoorbeeld `Saus apart`; geen toevoegingen of weggelaten spaties.
-- Betaling blijft één `orderPayments`-object, met het volledige restaurantbedrag. Formaat en automatisch afslaan moeten fysiek worden bevestigd.
+- Pura verstuurt het volledige restaurantbedrag als één betaling in de lijst `orderPayments`. Lightspeed weigerde de eerste proef (GB01) omdat het een los betaalobject ontving. De juiste boeking en het automatisch afslaan moeten nog op de kassa worden bevestigd.
 
 ## Stand van de fysieke proef (22 november 2026)
 Alleen bestaande instellingen uitgelezen; geen kassaverzoek uitgevoerd.

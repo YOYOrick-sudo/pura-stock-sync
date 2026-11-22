@@ -78,7 +78,8 @@ Deno.test('volledige gesimuleerde liveweg: vaste klant, één order, €21 en Sa
     assertEquals(kassa.length, 1); assertEquals(kassa[0].customerId, 901);
     assertEquals(kassa[0].description, 'LOKAAL-LIVE — Sanne de Vries'); assertEquals(kassa[0].note, 'Saus apart');
     assertEquals(kassa[0].orderItems[0].amount, 3); assertEquals(kassa[0].orderItems[0].totalPrice, 21);
-    assertEquals(kassa[0].orderPayments.amount, 21); assertEquals(t.externe_bestelling_poging.length, 1);
+    assertEquals(kassa[0].orderPayments, [{ amount: 21, paymentTypeId: 77, paymentTypeTypeId: 3, tip: 0 }]);
+    assertEquals(t.externe_bestelling_poging.length, 1);
   });
 });
 

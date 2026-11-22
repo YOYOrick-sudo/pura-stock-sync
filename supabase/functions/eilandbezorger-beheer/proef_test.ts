@@ -82,7 +82,7 @@ Deno.test('vaste owner-proef: volledige Pura-weg, €4,90, één product en best
   assertEquals(b.externalReference, 'PV-PROEF-MID-20261122-GB01');
   assertEquals(b.description, 'PV-PROEF-MID-20261122-GB01 — Pura Test'); assertEquals(b.note, 'TEST – niet klaarmaken');
   assertEquals(b.orderItems, [{ productId: 4636894, amount: 1, unitPrice: 4.9, totalPrice: 4.9, modifiers: [], subitems: [] }]);
-  assertEquals(b.orderPayments, { amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 });
+  assertEquals(b.orderPayments, [{ amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
   assertEquals(b.deliveryDate, '2026-11-22T15:27:00.000Z'); assertEquals(b.status, 'ACCEPTED');
   assertEquals(t.fase2_vlag[0].aan, false); assertEquals(t.externe_bestelling_poging[0].id, PROEF_POGING_ID);
 }));
