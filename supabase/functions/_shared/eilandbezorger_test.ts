@@ -114,11 +114,11 @@ Deno.test('gelijktijdige tokenvernieuwing (omzet + order): één vernieuwing, be
 });
 
 function rijDb() {
-  const rij = { id: 'b1', versie: 2, status: 'verzenden', vestiging: 'Midsland', extern_id: 'EB1', orderbericht: {}, invoer: { klant: { voornaam: 'An', achternaam: 'Gast', email: 'an@example.com' } } };
+  const rij = { modus: 'live', referentie: 'EB-L-36864-EB1', restaurant_cent: 1500, regels: [], ophaaltijd: basis.ophaaltijd, id: 'b1', versie: 2, status: 'verzenden', vestiging: 'Midsland', extern_id: 'EB1', orderbericht: {}, invoer: { ...basis, modus: 'live', klant: { naam: 'An Gast' } } };
   const db = fakeDb({
     lightspeed_connections: [{ vestiging: 'Midsland', access_token: 't', refresh_token: 'r', token_expires_at: '2999-01-01T00:00:00Z', status: 'gekoppeld' }],
-    externe_kassa_config: [{ vestiging: 'Midsland', lightspeed_klant_id: '1', lightspeed_betaalwijze_id: '2', order_route: 'customer_order' }],
-    externe_klant_koppeling: [{ id: 'k1', vestiging: 'Midsland', email: 'an@example.com', klantcode: null, voornaam: 'An', achternaam: 'Gast', lightspeed_klant_id: '501', status: 'gekoppeld' }],
+    externe_kassa_config: [{ vestiging: 'Midsland', lightspeed_klant_id: '1', lightspeed_betaalwijze_id: '2', lightspeed_betaalwijze_type_id: '3', order_route: 'customer_order' }],
+    fase2_vlag: [{ vestiging: 'Midsland', vlag: 'eilandbezorger_live', aan: true }],
     externe_bestellingen: [rij], externe_bestelling_poging: [], externe_bestelling_log: [], user_roles: [], notifications: [],
   });
   return { db, rij };

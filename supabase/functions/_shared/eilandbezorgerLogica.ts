@@ -1,4 +1,5 @@
 import { z } from 'npm:zod@3.23.8';
+import { gastNaam, vasteKlantId } from './eilandbezorgerKlant.ts';
 
 // Voorlopig alleen Midsland (besluit Yorick 20-11-2026).
 export const VESTIGING_PER_MERCHANT: Record<string, string> = { '36864': 'Midsland' };
@@ -13,16 +14,13 @@ export const BestellingSchema = z.object({
   vestiging: z.enum(['36864']),
   ophaaltijd: iso,
   bezorgtijd: iso.optional(),
-  // Gast: voornaam/achternaam/email nodig voor live. Oude berichten met alleen naam blijven geldig (ontvangsttest).
-  // telefoon is van Eilandbezorger zelf: geaccepteerd, nooit gebruikt.
+  // Onbekende velden (ook contactgegevens) worden gestript, niet gevalideerd of bewaard.
   klant: z.object({
-    naam: z.string().trim().min(1).max(80).optional(),
+    naam: z.string().trim().min(1).max(121).optional(),
     voornaam: z.string().trim().min(1).max(60).optional(),
     achternaam: z.string().trim().min(1).max(60).optional(),
-    email: z.string().trim().toLowerCase().email().max(120).optional(),
-    klantcode: z.string().trim().min(1).max(64).optional(),
-    telefoon: z.string().trim().max(30).optional(),
-  }).refine((k) => !!k.naam || (!!k.voornaam && !!k.achternaam), { message: 'naam of voornaam+achternaam verplicht' }),
+  }).refine((k) => !!k.naam || (!!k.voornaam && !!k.achternaam), { message: 'naam of voornaam+achternaam verplicht' })
+    .transform((k) => ({ naam: gastNaam({ klant: k }) })),
   // Ongewijzigd naar het Lightspeed-veld note; niet trimmen.
   opmerking: z.string().max(500).optional(),
   regels: z.array(z.object({
@@ -41,7 +39,7 @@ export const BestellingSchema = z.object({
       oorspronkelijk_cent: cent,
       korting_cent: cent,
       betaald_door: z.enum(['eilandbezorger', 'restaurant']),
-    }).nullish(),
+    }).nullish().transform((korting) => korting ?? null),
   }),
   betaling: z.object({ wijze: z.string().min(1).max(40), referentie: z.string().trim().max(80).optional() }),
 });
@@ -117,13 +115,28 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
 }
 
 export type Status = 'afgekeurd' | 'test_ok' | 'geblokkeerd' | 'gepland' | 'verzenden' | 'ter_beoordeling';
-export function beginStatus(p: { modus: 'test' | 'live'; liveAan: boolean; configCompleet: boolean; gastCompleet?: boolean; ophaaltijd: string; nu: number; vensterMin: number }): { status: Status; reden?: string } {
+export function kassaBlokkade(cfg: any): string | null {
+  if (!vasteKlantId(cfg?.lightspeed_klant_id)) return 'Vaste Lightspeed-klant Eilandbezorger voor Midsland ontbreekt.';
+  if (!vasteKlantId(cfg?.lightspeed_betaalwijze_id) || !vasteKlantId(cfg?.lightspeed_betaalwijze_type_id)) return 'Kassa-instellingen (betaalwijze) ontbreken.';
+  if (cfg?.order_route === 'establishment_order' && !vasteKlantId(cfg?.lightspeed_company_id)) return 'Kassa-instellingen (company-ID) ontbreken.';
+  return null;
+}
+
+export function beginStatus(p: { modus: 'test' | 'live'; liveAan: boolean; configCompleet: boolean; configReden?: string | null; ophaaltijd: string; nu: number; vensterMin: number }): { status: Status; reden?: string } {
   if (p.modus === 'test') return { status: 'test_ok' };
   if (!p.liveAan) return { status: 'geblokkeerd', reden: 'Live verzending staat uit voor deze vestiging.' };
-  if (!p.configCompleet) return { status: 'geblokkeerd', reden: 'Kassa-instellingen (betaalwijze) ontbreken.' };
-  if (p.gastCompleet === false) return { status: 'ter_beoordeling', reden: 'Gastgegevens (voornaam, achternaam, e-mail) ontbreken.' };
+  if (!p.configCompleet) return { status: 'geblokkeerd', reden: p.configReden ?? 'Kassa-instellingen ontbreken.' };
   if (new Date(p.ophaaltijd).getTime() - p.nu > p.vensterMin * 60_000) return { status: 'gepland' };
   return { status: 'verzenden' };
+}
+
+/** Historische vingerafdrukken blijven staan; hervergelijk oude invoer zonder contactgegevens. */
+export async function zelfdeBestelling(r: any, b: Bestelling, vinger: string): Promise<boolean> {
+  if (r.modus !== b.modus || r.merchant_id !== b.vestiging || r.extern_id !== b.bestelnummer ||
+      new Date(r.ophaaltijd).getTime() !== new Date(b.ophaaltijd).getTime()) return false;
+  if (r.vingerafdruk === vinger) return true;
+  const oud = BestellingSchema.safeParse(r.invoer);
+  return oud.success && await vingerafdruk(oud.data) === vinger;
 }
 
 /** Besluit Yorick 21-11-2026: eerste kassaproef met orderPayments als object, zoals in het officiële POST-voorbeeld.
@@ -131,8 +144,7 @@ export function beginStatus(p: { modus: 'test' | 'live'; liveAan: boolean; confi
 export const BETALINGEN_ALS_LIJST = false;
 export const centen = (euro: number) => Math.round(euro * 100);
 
-/** L-Series onlineordering. Gastnaam komt uit het klantprofiel (customerId, gezet bij verzenden).
- * note = Karins opmerking ongewijzigd; description = Eilandbezorger-bestelnummer. Telefoon gaat nooit mee. */
+/** Vaste klant; orderspecifieke gastnaam en bestelnummer in description, opmerking exact in note. */
 export function orderbericht(p: { referentie: string; bestelnummer?: string; ophaaltijd: string; opmerking?: string; regels: Regel[]; restaurant_cent: number;
   betaalwijzeId: string | null; betaalwijzeTypeId?: string | null; klantId?: string | null; route?: 'customer_order' | 'establishment_order'; companyId?: string | null; klant?: unknown }) {
   const est = p.route === 'establishment_order';
@@ -144,7 +156,7 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
     type: 'takeaway',
     status: 'ACCEPTED',
     deliveryDate: p.ophaaltijd,
-    description: (p.bestelnummer ?? p.referentie).slice(0, 100),
+    description: [p.bestelnummer ?? p.referentie, gastNaam({ klant: p.klant })].filter(Boolean).join(' — '),
     ...(p.opmerking ? { note: p.opmerking } : {}),
     orderItems: p.regels.map((r) => ({
       ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),

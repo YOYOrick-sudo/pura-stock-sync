@@ -27,14 +27,13 @@ Elke aanroep bevat `"modus": "test"` of `"modus": "live"`. Ontbreekt hij: 400.
   "vestiging": "36864",
   "ophaaltijd": "2026-11-21T17:30:00+01:00",
   "bezorgtijd": "2026-11-21T17:50:00+01:00",
-  "klant": { "voornaam": "Sanne", "achternaam": "de Vries", "email": "sanne.devries@example.com", "klantcode": "EBK-10293" },
-  "opmerking": "Geen ui",
+  "klant": { "voornaam": "Sanne", "achternaam": "de Vries" },
+  "opmerking": "Saus apart",
   "regels": [
-    { "code": "FRIET-ZOET", "naam": "Zoete Aardappel Friet", "aantal": 2, "stukprijs_cent": 700,
-      "extras": [{ "code": "MAYO", "aantal": 1, "stukprijs_cent": 50 }] }
+    { "code": "PV-FFA8275F", "naam": "Zoete Aardappel Friet", "aantal": 3, "stukprijs_cent": 700 }
   ],
   "bedragen": {
-    "restaurant_cent": 1500,
+    "restaurant_cent": 2100,
     "bezorgkosten_cent": 350,
     "fooi_cent": 0,
     "korting": null
@@ -43,6 +42,7 @@ Elke aanroep bevat `"modus": "test"` of `"modus": "live"`. Ontbreekt hij: 400.
 }
 ```
 Regels:
+- `klant`: alleen `voornaam` + `achternaam`, of `naam` als bestaande volledige naam. Als beide zijn ingevuld, gebruiken we voornaam + achternaam. E-mail, telefoon en klantcode zijn niet nodig: niet aanleveren; toch meegekomen velden worden genegeerd en niet opgeslagen in nieuwe berichten/logs. Ontbreken blokkeert nooit.
 - `bestelnummer`: letters, cijfers, `.`, `_`, `-`; max 64.
 - Tijden in ISO 8601 met tijdzone. `ophaaltijd` = wanneer de bezorger ophaalt (stuurt de keuken). `bezorgtijd` = bij de klant (alleen bewaard).
 - `stukprijs_cent` per stuk; extras per hoofdproduct (aantal extra × aantal product).
@@ -81,6 +81,8 @@ Fouten hebben de vorm `{ "fout": "<uitleg>" }`, bij 400 met `velden` per ongeldi
 | 422 | Afgekeurd (zie `reden`) | Niet herhalen met dezelfde inhoud |
 | 500 | Storing bij ons | Na 1 minuut exact hetzelfde opnieuw sturen (veilig: wordt herkend) |
 
+Herhalingen van historische orders worden ook herkend na normalisatie zonder contactgegevens; gewijzigde gastnaam, opmerking, productregels of bedragen blijven 409. Historische testorders blijven staan.
+
 Bij een time-out: stuur exact dezelfde bestelling opnieuw of vraag de status op. Nooit een nieuw bestelnummer voor dezelfde bestelling.
 
 ## Statussen
@@ -107,16 +109,36 @@ Annuleren of wijzigen ná verzending: telefonisch met het restaurant.
 - Testbestelling ging niet naar Lightspeed (nul verzendpogingen).
 - Daarnaast 17 automatische tests: bedragen, extra's, betaalwijze, korting, venster, dubbele verzending, verloren antwoord, laat antwoord, tokenvernieuwing.
 
-## Nog niet klaar of niet getest
-- **Productcodes zijn nog niet gekoppeld.** Tot Pura de lijst vult, wordt elke bestelling afgekeurd met "Onbekend product". Stuur Pura je productcodes en prijzen.
-- Daardoor is `test_ok` nog niet echt bereikt; de route ernaartoe is wel automatisch getest.
-- **Live verzending naar de kassa staat uit.** Live-bestellingen worden nu `geblokkeerd`.
-- Klant: voor live verplicht `klant.voornaam`, `klant.achternaam`, `klant.email`; optioneel `klant.klantcode` (vaste code van Eilandbezorger). Per gast ontstaat één Lightspeed-klantprofiel (herkend op klantcode of exact e-mailadres). Twijfel → status `ter_beoordeling`. `klant.telefoon` wordt geaccepteerd maar nooit gebruikt. Oude berichten met alleen `klant.naam` blijven geldig voor test.
-- `opmerking` gaat ongewijzigd naar de bon (Lightspeed `note`), alleen bij die bestelling. Het bestelnummer staat in `description`.
-- Betaling gaat mee als één `orderPayments`-object (officieel POST-voorbeeld). Formaat nog niet door een echte kassaproef bevestigd.
+## Vaste klant en orderspecifieke naam
+- Alle Midsland-bestellingen gebruiken één vaste Lightspeed-klant ‘Eilandbezorger’, via de bestaande locatie-instelling `lightspeed_klant_id`.
+- Er wordt geen klant per gast gezocht, aangemaakt of gewijzigd. Geen aparte bestelgeschiedenis per gast.
+- Ontbreekt de vaste klant-ID, dan blijft ontvangst werken en blijft een geldige test `test_ok`; alleen kassaverzending wordt geblokkeerd met “Vaste Lightspeed-klant Eilandbezorger voor Midsland ontbreekt.”
+- `description`: bestelnummer + ` — ` + gastnaam, bijvoorbeeld `EB-TEST-20261122-120013 — Sanne de Vries`.
+- `note`: Karins opmerking exact, bijvoorbeeld `Saus apart`; geen toevoegingen of weggelaten spaties.
+- Betaling blijft één `orderPayments`-object, met het volledige restaurantbedrag. Formaat en automatisch afslaan moeten fysiek worden bevestigd.
 
-## Begeleide kassaproef (één keer, pas na akkoord Yorick en live aan)
-`bestelnummer` nieuw (bijv. `EB-PROEF-20261122-1`), `modus: "live"`, 3× `PV-FFA8275F` à 700, `restaurant_cent: 2100`, `opmerking: "Saus apart"`, echte gastnaam/e-mail van de proefpersoon. Geslaagd: naam en "Saus apart" op keukenbon én klantbon, keukenbon precies één keer, €21,00 op "Eilandbezorger – vooraf betaald", €0,00 open, zonder handmatig afslaan. Bij een time-out niet opnieuw versturen; eerst teruglezen.
-- Automatisch doorsturen van geplande bestellingen wordt pas aangezet als live aangaat.
-- Kortingen worden afgekeurd tot een kassaproef.
-- Annuleren of wijzigen na verzending gaat telefonisch.
+## Stand van de fysieke proef (22 november 2026)
+Alleen bestaande instellingen uitgelezen; geen kassaverzoek uitgevoerd.
+- Midsland-liveverzending: **uit**; blijft uit.
+- Vaste klant-ID voor ‘Eilandbezorger’: **nog niet ingevuld**. Laat Yorick de juiste bestaande klant en ID bevestigen.
+- Betaalwijze-ID en betaalwijze-type-ID: **nog niet ingevuld**. De bestaande betaalwijze ‘eilandbezorger’ is daarmee nog niet aan deze koppeling gekoppeld; of zij in Lightspeed actief en correct ingesteld is, is niet bevestigd.
+- Orderroute: `customer_order`. Geen company-ID nodig voor deze variant; daadwerkelijke verwerking moet de kassaproef bevestigen.
+- Frietcode `PV-FFA8275F` is gekoppeld aan kassaproduct `4636994`, €7 incl. btw. Andere onzekere producten/formaat-/extrakoppelingen blijven open; de bestaande prijscontroles blijven gelden.
+- Historische test `EB-TEST-20261122-120013` blijft `test_ok` en wordt niet aangepast of verzonden.
+
+## Lokaal testen (geen echte orders)
+Gebruik de gegevens van de historische test: Sanne de Vries, 3× `PV-FFA8275F` à 700 cent, totaal 2100 cent, `korting: null`, `Saus apart`.
+Controleer ontvangst/testmodus, een gesimuleerde liveweg met vaste klant, ontbrekende vaste klant, ontbrekende contactvelden, historische herhaling en inhoudsconflicten. Mocks vervangen alle kassatoegang; deze tests maken geen database- of Lightspeed-klanten aan.
+
+Uitgevoerd: 40 lokale tests geslaagd, waaronder vier tests door de volledige ontvangfunctie met uitsluitend een database/kassa in geheugen. Geen echte kassatoegang, klantaanmaak of nieuwe opgeslagen testorder.
+
+## Begeleide kassaproef (pas na akkoord Yorick)
+Gebruik een **nieuw** bestelnummer (bijvoorbeeld `EB-PROEF-20261122-1`), `modus: "live"`, gastnaam zonder contactvelden, 3× friet à €7, totaal €21 en `opmerking: "Saus apart"`. Vul eerst de bevestigde vaste klant-ID en beide betaalwijze-IDs in; zet live alleen bewust voor de begeleide proef aan.
+
+Controleer op de fysieke kassa:
+1. Bestelnummer en **Sanne de Vries** op keukenbon én klantbon; `Saus apart` exact in de aparte notitie.
+2. Eén keukenbon, 3× friet, totaal €21.
+3. €21 geboekt op de bestaande betaalwijze ‘eilandbezorger’, €0 open en automatisch afgeslagen zonder handwerk.
+4. Bij timeout: niet opnieuw versturen met een nieuw nummer; eerst status/teruglezen controleren. Afdruk op beide bonnen en automatisch afslaan zijn **nog niet bewezen**.
+
+Geplande orders gaan pas door wanneer live aan staat en de instellingen compleet zijn. Kortingen blijven afgekeurd. Annuleren of wijzigen na verzending gaat telefonisch.

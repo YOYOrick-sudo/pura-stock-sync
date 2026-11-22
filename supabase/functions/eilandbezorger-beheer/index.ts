@@ -3,6 +3,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
+import { kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 
@@ -49,7 +50,7 @@ async function kassaInstellingen(admin: any) {
   for (let offset = 0; offset < 3000; offset += 100) {
     const j: any = await lees(`/rest/core/customer?amount=100&offset=${offset}`);
     if (j?.fout) { klanten.push(j); break; }
-    const l = j.results ?? []; klanten.push(...l.filter((k: any) => JSON.stringify([k.firstName, k.lastName, k.companyName, k.email]).toLowerCase().includes('eiland')).map((k: any) => ({ id: k.id, voornaam: k.firstName, achternaam: k.lastName, bedrijf: k.companyName, companyId: k.companyId })));
+    const l = j.results ?? []; klanten.push(...l.filter((k: any) => JSON.stringify([k.firstName, k.lastName, k.companyName]).toLowerCase().includes('eiland')).map((k: any) => ({ id: k.id, voornaam: k.firstName, achternaam: k.lastName, bedrijf: k.companyName, companyId: k.companyId })));
     if (l.length < 100) break;
   }
   return { company: await lees('/rest/core/company'), establishment: await lees('/rest/core/establishment'), betaalwijzen: { company: await lees('/rest/core/company/36864/paymenttype'), lijst: await lees('/rest/core/paymenttype/list'), financieel: await lees('/rest/financial/paymenttype') }, eilandbezorgerKlanten: klanten };
@@ -134,7 +135,8 @@ Deno.serve(async (req) => {
       const { data: vlag } = await admin.from('fase2_vlag').select('aan').eq('vestiging', r.vestiging).eq('vlag', 'eilandbezorger_live').maybeSingle();
       if (!vlag?.aan) return json({ fout: 'live staat uit' }, 409);
       const { data: cfg } = await admin.from('externe_kassa_config').select('*').eq('vestiging', r.vestiging).maybeSingle();
-      if (!cfg?.lightspeed_betaalwijze_id || !cfg?.lightspeed_betaalwijze_type_id) return json({ fout: 'kassa-instellingen ontbreken' }, 409);
+      const blokkade = kassaBlokkade(cfg);
+      if (blokkade) return json({ fout: blokkade }, 409);
       if (new Date(r.ophaaltijd).getTime() < Date.now() && !a.tijd_voorbij_akkoord) return json({ fout: 'ophaaltijd is voorbij; bevestig bewust', tijd_voorbij: true }, 409);
       const verder = new Date(r.ophaaltijd).getTime() - Date.now() > cfg.venster_minuten * 60_000;
       if (verder) { const x = await overgang(admin, r.id, r.versie, ['geblokkeerd'], 'gepland', {}, 'Vrijgegeven, wacht op venster', door); return x ? json({ status: x.status }) : json({ fout: 'tegelijk gewijzigd' }, 409); }

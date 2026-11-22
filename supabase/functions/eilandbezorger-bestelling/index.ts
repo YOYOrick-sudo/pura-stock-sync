@@ -2,11 +2,11 @@
 // Eén sleutel (EILANDBEZORGER_SLEUTEL) in kop x-eilandbezorger-sleutel. Elke aanroep vermeldt verplicht
 // modus test|live; de modus wordt bij ontvangst onveranderlijk vastgelegd. Test gaat nooit naar Lightspeed.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { BestellingSchema, OphaaltijdSchema, VESTIGING_PER_MERCHANT, beginStatus, controleer, gelijkeSleutel, orderbericht, vingerafdruk } from '../_shared/eilandbezorgerLogica.ts';
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { BestellingSchema, OphaaltijdSchema, VESTIGING_PER_MERCHANT, beginStatus, controleer, gelijkeSleutel, orderbericht, vingerafdruk, zelfdeBestelling, kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { meld, verzend } from '../_shared/eilandbezorgerVerzend.ts';
-import { gastVan } from '../_shared/eilandbezorgerKlant.ts';
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, x-eilandbezorger-sleutel', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
+const cors = { ...corsHeaders, 'Access-Control-Allow-Headers': `${corsHeaders['Access-Control-Allow-Headers']}, x-eilandbezorger-sleutel`, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 function antwoord(r: any) {
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const vinger = await vingerafdruk(b);
 
     const bestaand = async () => (await admin.from('externe_bestellingen').select('*').eq('bron', 'eilandbezorger').eq('modus', modus).eq('merchant_id', b.vestiging).eq('extern_id', b.bestelnummer).maybeSingle()).data;
-    const herhaling = (r: any) => (r.vingerafdruk === vinger && new Date(r.ophaaltijd).getTime() === new Date(b.ophaaltijd).getTime())
+    const herhaling = async (r: any) => (await zelfdeBestelling(r, b, vinger))
       ? json(antwoord(r), 200)
       : json({ fout: 'bestelnummer bestaat al met andere inhoud; wijzigingen via afgesproken procedure', ...antwoord(r) }, 409);
     const oud = await bestaand(); if (oud) return herhaling(oud);
@@ -75,15 +75,15 @@ Deno.serve(async (req) => {
     let status: string, reden: string | undefined;
     if (!conn || !['gekoppeld', 'token_verlopen'].includes(conn.status)) { status = 'afgekeurd'; reden = 'Vestiging heeft geen actieve kassakoppeling.'; }
     else if (!c.ok) { status = 'afgekeurd'; reden = c.reden; }
-    else ({ status, reden } = beginStatus({ modus, liveAan: vlag?.aan === true, gastCompleet: !!gastVan(b), configCompleet: !!cfg?.lightspeed_betaalwijze_id && !!cfg?.lightspeed_betaalwijze_type_id && (cfg?.order_route !== 'establishment_order' || !!cfg?.lightspeed_company_id), ophaaltijd: b.ophaaltijd, nu: Date.now(), vensterMin: cfg?.venster_minuten ?? 45 }));
+    else ({ status, reden } = beginStatus({ modus, liveAan: vlag?.aan === true, configCompleet: !kassaBlokkade(cfg), configReden: kassaBlokkade(cfg), ophaaltijd: b.ophaaltijd, nu: Date.now(), vensterMin: cfg?.venster_minuten ?? 45 }));
 
     const regels = c.ok ? c.regels : null;
     const { data: rij, error } = await admin.from('externe_bestellingen').insert({
       modus, vestiging, merchant_id: b.vestiging, extern_id: b.bestelnummer, referentie, vingerafdruk: vinger,
       status: status === 'verzenden' ? 'ontvangen' : status, reden: reden ?? null, ophaaltijd: b.ophaaltijd, bezorgtijd: b.bezorgtijd ?? null,
       restaurant_cent: b.bedragen.restaurant_cent, bezorgkosten_cent: b.bedragen.bezorgkosten_cent, fooi_cent: b.bedragen.fooi_cent, korting: b.bedragen.korting ?? null,
-      invoer: ruw, regels,
-      orderbericht: regels ? orderbericht({ referentie, bestelnummer: b.bestelnummer, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null, betaalwijzeTypeId: cfg?.lightspeed_betaalwijze_type_id ?? null, klantId: null, route: cfg?.order_route, companyId: cfg?.lightspeed_company_id ?? null }) : null,
+      invoer: b, regels,
+      orderbericht: regels ? orderbericht({ referentie, bestelnummer: b.bestelnummer, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null, betaalwijzeTypeId: cfg?.lightspeed_betaalwijze_type_id ?? null, klant: b.klant, klantId: cfg?.lightspeed_klant_id ?? null, route: cfg?.order_route, companyId: cfg?.lightspeed_company_id ?? null }) : null,
     }).select('*').single();
     if (error) {
       if (error.code === '23505') { const r = await bestaand(); if (r) return herhaling(r); }
