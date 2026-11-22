@@ -16,7 +16,7 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('in_kassa'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
   z.object({ actie: z.literal('live'), vestiging: z.enum(['Midsland']), aan: z.boolean() }),
   z.object({ actie: z.literal('ronde') }),
-  z.object({ actie: z.literal('kassa_instellingen') }),
+  z.object({ actie: z.literal('kassa_instellingen'), alleen_betaalwijzen: z.boolean().optional() }),
   z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']) }),
 ]);
 
@@ -37,15 +37,19 @@ async function kaart(admin: any, bron: string) {
 }
 
 // Alleen-lezen: bedrijfsstructuur, klanten en betaalwijzen van Midsland. Nooit schrijven.
-async function kassaInstellingen(admin: any) {
+export async function kassaInstellingen(admin: any, alleenBetaalwijzen = false) {
   const t = await geldigToken(admin, 'Midsland');
   if ('error' in t) return { fout: t.error };
+  let laatsteStatus: number | null = null;
   const lees = async (pad: string) => {
     const r = await fetch(`https://lightspeedapis.com/resto${pad}`, { method: 'GET', headers: { Authorization: `Bearer ${t.token}`, Accept: 'application/json' } });
+    laatsteStatus = r.status;
     const tekst = await r.text();
-    if (!r.ok) return { fout: `lightspeed ${r.status}`, detail: tekst.slice(0, 300) };
+    if (!r.ok) return { fout: `lightspeed ${r.status}`, http_status: r.status, retry_after: r.headers.get('Retry-After'), detail: tekst.slice(0, 300) };
     try { return JSON.parse(tekst); } catch { return { fout: 'geen JSON' }; }
   };
+  const betaalwijzen = await lees('/rest/onlineordering/paymenttype');
+  if (alleenBetaalwijzen) return { merchant_id: '36864', bron: 'https://lightspeedapis.com/resto/rest/onlineordering/paymenttype', http_status: laatsteStatus, betaalwijzen };
   const klanten: any[] = [];
   for (let offset = 0; offset < 3000; offset += 100) {
     const j: any = await lees(`/rest/core/customer?amount=100&offset=${offset}`);
@@ -53,7 +57,7 @@ async function kassaInstellingen(admin: any) {
     const l = j.results ?? []; klanten.push(...l.filter((k: any) => JSON.stringify([k.firstName, k.lastName, k.companyName]).toLowerCase().includes('eiland')).map((k: any) => ({ id: k.id, voornaam: k.firstName, achternaam: k.lastName, bedrijf: k.companyName, companyId: k.companyId })));
     if (l.length < 100) break;
   }
-  return { company: await lees('/rest/core/company'), establishment: await lees('/rest/core/establishment'), betaalwijzen: { company: await lees('/rest/core/company/36864/paymenttype'), lijst: await lees('/rest/core/paymenttype/list'), financieel: await lees('/rest/financial/paymenttype') }, eilandbezorgerKlanten: klanten };
+  return { company: await lees('/rest/core/company'), establishment: await lees('/rest/core/establishment'), betaalwijzen, eilandbezorgerKlanten: klanten };
 }
 
 async function claimVerzend(admin: any, r: any, van: string[], door?: string) {
@@ -108,7 +112,7 @@ Deno.serve(async (req) => {
 
     if (a.actie === 'kassa_instellingen') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
-      return json(await kassaInstellingen(admin));
+      return json(await kassaInstellingen(admin, a.alleen_betaalwijzen === true));
     }
     if (a.actie === 'kaart') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
