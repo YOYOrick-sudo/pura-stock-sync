@@ -1,7 +1,7 @@
 import { geldigToken } from './lightspeedToken.ts';
-import { BestellingSchema, gelijkJson, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
+import { BestellingSchema, gelijkJson, vingerafdruk, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 import { vasteKlantId } from './eilandbezorgerKlant.ts';
-import { eersteProef, exacteProef, isProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_POGING_ID, PROEF_VRIJGAVE } from './eilandbezorgerProef.ts';
+import { EERSTE_PROEF, TWEEDE_PROEF, eersteProef, exacteProef, herkenProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_OWNER_ID } from './eilandbezorgerProef.ts';
 
 export const API = 'https://lightspeedapis.com/resto';
 
@@ -25,17 +25,18 @@ type Haal = typeof fetch;
 export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave?: symbol) {
   // Verdediging op alle aanroeppaden, vóór tokenbeheer of een kassaverzoek.
   if (rij.modus !== 'live' || rij.vestiging !== 'Midsland' || rij.status !== 'verzenden') return rij;
-  const proef = isProef(rij);
-  const hervatting = vrijgave === PROEF_HERVATTING;
-  if (proef && vrijgave !== PROEF_VRIJGAVE && !hervatting) return rij;
+  const proef = herkenProef(rij);
+  const hervatting = proef === EERSTE_PROEF && vrijgave === PROEF_HERVATTING;
+  if (proef && vrijgave !== proef.vrijgave && !hervatting) return rij;
   const [{ data: cfg }, { data: vlag }] = await Promise.all([
     admin.from('externe_kassa_config').select('*').eq('vestiging', rij.vestiging).maybeSingle(),
     admin.from('fase2_vlag').select('aan').eq('vestiging', rij.vestiging).eq('vlag', 'eilandbezorger_live').maybeSingle(),
   ]);
   const controleProef = async (eigenPoging = false, uitgaand?: unknown) => {
-    const c = await proefControle(admin, Date.now());
+    if (!proef) return 'Onbekende proef.';
+    const c = await proefControle(admin, Date.now(), proef);
     if ('fout' in c) return c.fout;
-    if (String(c.cfg.lightspeed_klant_id) !== String(cfg?.lightspeed_klant_id) || !exacteProef(rij, Date.now(), c.cfg, c.regels)) return 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
+    if (String(c.cfg.lightspeed_klant_id) !== String(cfg?.lightspeed_klant_id) || !exacteProef(rij, Date.now(), c.cfg, c.regels, proef)) return 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
     if (hervatting && (!eersteProef(rij, c.cfg, c.regels, Date.now()) || rij.versie !== 4)) return 'Hervatting wijkt af van de bevestigde eerste proef.';
     const { data: rollen, error } = await admin.from('user_roles').select('role').eq('user_id', rij.vrijgegeven_door).eq('is_active', true).in('role', ['owner', 'admin']);
     if (error || !rollen?.length) return 'Alleen een actieve eigenaar mag de vaste proef verzenden.';
@@ -44,7 +45,19 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave
     if (hervatting && (!eersteProef(actueel.data, c.cfg, c.regels, Date.now()) || actueel.data.lightspeed_order_id !== null ||
       (uitgaand === undefined ? actueel.data.orderbericht !== null || actueel.data.lightspeed_klant_id !== null :
         !gelijkJson(actueel.data.orderbericht, uitgaand) || actueel.data.lightspeed_klant_id !== '13597022'))) return 'Verzendspoor of gewijzigde eerste proef; geen verzending.';
-    if (!await proefPogingen(admin, eigenPoging)) return 'Eerdere of afwijkende proefpoging; geen verzending.';
+    if (proef === TWEEDE_PROEF) {
+      const nu = actueel.data;
+      if (cfg.lightspeed_betaalwijze_id !== c.cfg.lightspeed_betaalwijze_id || cfg.lightspeed_betaalwijze_type_id !== c.cfg.lightspeed_betaalwijze_type_id ||
+        cfg.order_route !== c.cfg.order_route || cfg.lightspeed_company_id !== c.cfg.lightspeed_company_id ||
+        !exacteProef(nu, Date.now(), c.cfg, c.regels, proef) || nu.vrijgegeven_door !== PROEF_OWNER_ID ||
+        nu.bron !== 'eilandbezorger' || nu.bezorgtijd !== null || nu.versie !== 2 || nu.lightspeed_order_id !== null ||
+        Date.parse(nu.ophaaltijd) !== Date.parse(rij.ophaaltijd) || nu.vingerafdruk !== await vingerafdruk(nu.invoer) ||
+        (uitgaand === undefined ? nu.orderbericht !== null || nu.lightspeed_klant_id !== null :
+          !gelijkJson(nu.orderbericht, uitgaand) || nu.lightspeed_klant_id !== c.cfg.lightspeed_klant_id)) {
+        return 'De tweede proef of het verzendspoor wijkt af van de vrijgave.';
+      }
+    }
+    if (!await proefPogingen(admin, eigenPoging, proef)) return 'Eerdere of afwijkende proefpoging; geen verzending.';
     return null;
   };
   const redenBlokkade = proef ? await controleProef() : !vlag?.aan ? 'Live verzending staat uit voor deze vestiging.' : kassaBlokkade(cfg);
@@ -60,7 +73,7 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave
     klantId, route: cfg.order_route, companyId: cfg.lightspeed_company_id });
   const pad = orderPad(cfg.order_route, klantId);
   if (!pad) return rij;
-  const { data: poging, error } = await admin.from('externe_bestelling_poging').insert({ ...(proef ? { id: PROEF_POGING_ID } : {}), bestelling_id: rij.id, versie: rij.versie, soort: 'verzenden' }).select('id').maybeSingle();
+  const { data: poging, error } = await admin.from('externe_bestelling_poging').insert({ ...(proef ? { id: proef.pogingId } : {}), bestelling_id: rij.id, versie: rij.versie, soort: 'verzenden' }).select('id').maybeSingle();
   if (error || !poging) return rij; // er loopt al een poging
   let http: number | null = null, body = '';
   const tok = await geldigToken(admin, rij.vestiging);

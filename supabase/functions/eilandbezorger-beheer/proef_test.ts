@@ -1,7 +1,7 @@
 // Lokale volledige beheer-/ontvangweg. Geen netwerkrechten of echte database.
 import { assertEquals } from 'jsr:@std/assert@1';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE } from '../_shared/eilandbezorgerProef.ts';
+import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF } from '../_shared/eilandbezorgerProef.ts';
 import { verzend } from '../_shared/eilandbezorgerVerzend.ts';
 type Rij = Record<string, any>;
 type Handler = (req: Request) => Promise<Response>;
@@ -34,13 +34,13 @@ async function lokaal(run: (s: { t: Record<string, Rij[]>; kassa: Rij[]; post: (
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const u = new URL(String(input)), method = init?.method ?? 'GET';
     if (u.hostname === 'lightspeedapis.com') {
-      if (method !== 'POST' || u.pathname !== '/resto/rest/onlineordering/customer/901/order') throw new Error('Verboden klant-/kassaverzoek');
+      if (method !== 'POST' || !['/resto/rest/onlineordering/customer/901/order', '/resto/rest/onlineordering/customer/13597022/order'].includes(u.pathname)) throw new Error('Verboden klant-/kassaverzoek');
       kassa.push(JSON.parse(String(init?.body)));
       if (mode === 'timeout') throw new Error('Verloren antwoord');
       return mode === 'weigering' ? Response.json({ error: 'geweigerd' }, { status: 400 }) : Response.json({ id: 8001 }, { status: 201 });
     }
     if (u.origin !== 'http://127.0.0.1:9876') throw new Error('Extern netwerk verboden');
-    if (u.pathname === '/auth/v1/user') return Response.json({ id: 'owner-lokaal', aud: 'authenticated', role: 'authenticated' });
+    if (u.pathname === '/auth/v1/user') return Response.json({ id: t.user_roles[0].user_id, aud: 'authenticated', role: 'authenticated' });
     if (!u.pathname.startsWith('/rest/v1/')) throw new Error('Onbekende lokale route');
     const tabel = u.pathname.split('/').at(-1) ?? '', rows = t[tabel] ??= [];
     const past = (r: Rij) => [...u.searchParams].every(([k, v]) => {
@@ -53,7 +53,7 @@ async function lokaal(run: (s: { t: Record<string, Rij[]>; kassa: Rij[]; post: (
     if (method === 'POST') {
       const raw = JSON.parse(String(init?.body)), nieuw: Rij[] = Array.isArray(raw) ? raw : [raw];
       if (nieuw.some((r) => rows.some((x) => (r.id && x.id === r.id) || (tabel === 'externe_bestellingen' && (x.referentie === r.referentie || (x.extern_id === r.extern_id && x.modus === r.modus && x.merchant_id === r.merchant_id)))))) return Response.json({ code: '23505' }, { status: 409 });
-      uit = nieuw.map((r) => ({ id: crypto.randomUUID(), bron: 'eilandbezorger', versie: 1, status: 'ontvangen', uitkomst: 'bezig', ...r })); rows.push(...uit);
+      uit = nieuw.map((r) => ({ ...(tabel === 'externe_bestellingen' ? { bezorgtijd: null, orderbericht: null, lightspeed_klant_id: null, lightspeed_order_id: null } : {}), id: crypto.randomUUID(), bron: 'eilandbezorger', versie: 1, status: 'ontvangen', uitkomst: 'bezig', ...r })); rows.push(...uit);
     } else if (method === 'PATCH') {
       const patch = JSON.parse(String(init?.body)); uit.forEach((r) => Object.assign(r, patch));
       if (tabel === 'externe_bestellingen' && patch.orderbericht) na?.();
@@ -180,3 +180,63 @@ for (const [naam, patch] of inhoudWijzigingen) Deno.test(`exacte proef weigert $
   assertEquals(exacteProef(rij, NU, cfg, regels), true);
   assertEquals(exacteProef({ ...rij, ...patch }, NU, cfg, regels), false);
 });
+
+
+const gb02 = { actie: 'ginger_beer_proef_gb02', referentie: TWEEDE_PROEF.referentie, bevestiging: true };
+function metEersteWeigering(t: Record<string, Rij[]>) {
+  t.user_roles[0].user_id = PROEF_OWNER_ID;
+  Object.assign(t.externe_kassa_config[0], { merchant_id: '36864', lightspeed_klant_id: '13597022', lightspeed_company_id: null });
+  t.externe_product_koppeling[0].lightspeed_plu = 'Kd-a11';
+  t.externe_bestellingen.push({ id: PROEF_ORDER_ID, extern_id: PROEF_REFERENTIE, referentie: PROEF_REFERENTIE,
+    vestiging: 'Midsland', merchant_id: '36864', modus: 'live', status: 'geweigerd', lightspeed_order_id: null });
+  t.externe_bestelling_poging.push({ id: PROEF_POGING_ID, bestelling_id: PROEF_ORDER_ID, soort: 'verzenden',
+    uitkomst: 'geweigerd', http_status: 400, antwoord: JSON.stringify({
+      description: 'JSON parse error: Cannot deserialize value of type `java.util.ArrayList<com.xudox.pos.server.rest.shared.model.OrderPaymentDTO>` from Object value (token `JsonToken.START_OBJECT`); (through reference chain: com.xudox.pos.server.rest.shared.model.OrderDTO["orderPayments"])',
+    }) });
+}
+
+Deno.test('GB02 verstuurt één keer vanuit Pura en houdt beide proefnummers gereserveerd', async () => lokaal(async ({ t, post, partner, kassa }) => {
+  metEersteWeigering(t);
+  const origineel = structuredClone([t.externe_bestellingen[0], t.externe_bestelling_poging[0]]);
+  assertEquals((await partner(proefInvoer(NU, TWEEDE_PROEF))).status, 403);
+  assertEquals((await partner({ actie: 'ophaaltijd', bestelnummer: TWEEDE_PROEF.referentie, modus: 'live', vestiging: '36864', ophaaltijd: new Date(NU).toISOString() })).status, 403);
+  assertEquals((await post(gb02, false)).status, 401);
+  const resultaten = await Promise.all([post(gb02), post(gb02)]);
+  assertEquals(resultaten.map(r => r.status).sort(), [200, 409]);
+  assertEquals((await post(gb02)).status, 409);
+  assertEquals(kassa.length, 1);
+  assertEquals(kassa[0].externalReference, TWEEDE_PROEF.referentie);
+  assertEquals(kassa[0].deliveryDate, new Date(NU).toISOString());
+  assertEquals(kassa[0].orderPayments, [{ amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
+  assertEquals(t.externe_bestelling_poging.map(p => p.id), [PROEF_POGING_ID, TWEEDE_PROEF.pogingId]);
+  assertEquals([t.externe_bestellingen[0], t.externe_bestelling_poging[0]], origineel);
+  assertEquals(t.fase2_vlag[0].aan, false);
+  t.fase2_vlag[0].aan = true;
+  for (const id of [PROEF_ORDER_ID, TWEEDE_PROEF.orderId]) {
+    assertEquals((await post({ actie: 'herverzenden', id, bevestiging: true, reden: 'Geen herhaling van proef' })).status, 409);
+  }
+}));
+
+for (const [naam, wijzig] of [
+  ['verkeerd account', (t: Record<string, Rij[]>) => { t.user_roles[0].user_id = 'andere-owner'; }],
+  ['andere klant', (t: Record<string, Rij[]>) => { t.externe_kassa_config[0].lightspeed_klant_id = '555'; }],
+  ['andere eerste referentie', (t: Record<string, Rij[]>) => { t.externe_bestellingen[0].referentie = 'ANDER'; }],
+  ['onzekere eerste order', (t: Record<string, Rij[]>) => { t.externe_bestellingen[0].status = 'uitkomst_onbekend'; }],
+  ['eerste order-ID aanwezig', (t: Record<string, Rij[]>) => { t.externe_bestellingen[0].lightspeed_order_id = '44'; }],
+  ['eerste poging ontbreekt', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging = []; }],
+  ['extra eerste poging', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging.push({ ...t.externe_bestelling_poging[0], id: 'andere-poging' }); }],
+  ['andere HTTP-status', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging[0].http_status = 500; }],
+  ['andere 400', (t: Record<string, Rij[]>) => { t.externe_bestelling_poging[0].antwoord = '{"description":"andere fout orderPayments"}'; }],
+] as const) Deno.test('GB02 vóór verzending geblokkeerd: ' + naam, async () => lokaal(async ({ t, post, kassa }) => {
+  metEersteWeigering(t); wijzig(t);
+  assertEquals((await post(gb02)).status, 409);
+  assertEquals(t.externe_bestellingen.length, 1);
+  assertEquals(kassa.length, 0);
+}));
+
+Deno.test('GB02 met verloren antwoord wordt nooit herhaald', async () => lokaal(async ({ t, post, fout, kassa }) => {
+  metEersteWeigering(t); fout('timeout');
+  assertEquals((await (await post(gb02)).json()).status, 'uitkomst_onbekend');
+  assertEquals((await post(gb02)).status, 409);
+  assertEquals(kassa.length, 1);
+}));
