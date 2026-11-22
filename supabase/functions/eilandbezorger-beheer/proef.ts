@@ -1,4 +1,4 @@
-import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, type VasteProef, eersteProef, eersteProefAudit, proefControle, proefPogingen, PROEF_BLOKKADE, PROEF_EERSTE_HASH, PROEF_EERSTE_TIJD, PROEF_HERVAT_REDEN, PROEF_HERVATTING, PROEF_ORDER_ID, PROEF_OWNER_ID, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
+import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, FRIET_OUDE_REFERENTIE, type VasteProef, eersteProef, eersteProefAudit, proefControle, proefPogingen, PROEF_BLOKKADE, PROEF_EERSTE_HASH, PROEF_EERSTE_TIJD, PROEF_HERVAT_REDEN, PROEF_HERVATTING, PROEF_ORDER_ID, PROEF_OWNER_ID, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { vingerafdruk } from '../_shared/eilandbezorgerLogica.ts';
 import { overgang, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 
@@ -8,7 +8,10 @@ export async function gingerBeerProef(admin: any, eigenaarId: string, proef: Vas
   if ((proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF || proef === FRIET_PROEF) && !await proefPogingen(admin, false, proef)) return { fout: `${proef === FRIET_PROEF ? 'FR01' : proef === ZEVENDE_PROEF ? 'GB07' : proef === ZESDE_PROEF ? 'GB06' : proef === VIJFDE_PROEF ? 'GB05' : proef === VIERDE_PROEF ? 'GB04' : 'GB03'} heeft al een poging of kon niet veilig worden gecontroleerd; niet herhalen.` };
   const c = await proefControle(admin, Date.now(), proef);
   if ('fout' in c) return { fout: c.fout };
-  const bestaand = await admin.from('externe_bestellingen').select('id, modus, status, referentie').eq('merchant_id', '36864').eq('extern_id', proef.referentie);
+  const bestaandQuery = admin.from('externe_bestellingen').select('id, modus, status, referentie');
+  const bestaand = proef === FRIET_PROEF
+    ? await bestaandQuery.or(`id.eq.${proef.orderId},extern_id.in.(${FRIET_OUDE_REFERENTIE},${proef.referentie}),referentie.in.(${FRIET_OUDE_REFERENTIE},${proef.referentie})`)
+    : await bestaandQuery.eq('merchant_id', '36864').eq('extern_id', proef.referentie);
   if (bestaand.error) return { fout: 'Bestaande proef kon niet veilig worden gecontroleerd.' };
   if (bestaand.data?.length) return { fout: 'Proef bestaat al; geen nieuwe verzending of testconversie.', bestelling: bestaand.data };
   const { data: rij, error } = await admin.from('externe_bestellingen').insert({

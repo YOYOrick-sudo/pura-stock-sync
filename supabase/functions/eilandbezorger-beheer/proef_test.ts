@@ -1,7 +1,7 @@
 // Lokale volledige beheer-/ontvangweg. Geen netwerkrechten of echte database.
 import { assertEquals } from 'jsr:@std/assert@1';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF } from '../_shared/eilandbezorgerProef.ts';
+import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, FRIET_OUDE_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { mockKaart } from '../_shared/eilandbezorgerPrijsFixtures.ts';
 type Rij = Record<string, any>;
@@ -47,6 +47,13 @@ async function lokaal(run: (s: { t: Record<string, Rij[]>; kassa: Rij[]; post: (
     const tabel = u.pathname.split('/').at(-1) ?? '', rows = t[tabel] ??= [];
     const past = (r: Rij) => [...u.searchParams].every(([k, v]) => {
       if (['select', 'limit', 'order'].includes(k)) return true;
+      if (k === 'or') {
+        const clauses = v.slice(1, -1).match(/[^,]+\.in\.\([^)]*\)|[^,]+\.eq\.[^,]+/g) ?? [];
+        return clauses.some(c => {
+          const [field, op, ...rest] = c.split('.'), value = rest.join('.');
+          return op === 'eq' ? String(r[field]) === value : value.slice(1, -1).split(',').includes(String(r[field]));
+        });
+      }
       if (v.startsWith('eq.')) return String(r[k]) === v.slice(3);
       if (v.startsWith('in.(')) return v.slice(4, -1).split(',').includes(String(r[k]));
       throw new Error('Niet ondersteunde filter');
@@ -759,12 +766,14 @@ for (const [naam, wijzig] of [
 // FR01: identical owner-only path, distinct immutable article and permanent claims.
 function metFrietProef(t: Record<string, Rij[]>) {
   metZesProeven(t);
+  Date.now = () => Date.parse('2026-11-22T23:37:00Z');
   t.externe_product_koppeling[0] = { vestiging: 'Midsland', soort: 'product', externe_code: 'PV-FFA8275F', lightspeed_product_id: '4636994', lightspeed_plu: 'F-a12', naam: 'Zoete Aardappel Friet', prijs_cent: 700, actief: true };
 }
 const fr01 = { actie: 'print_proef_fr01', referentie: FRIET_PROEF.referentie, bevestiging: true };
  Deno.test('FR01 verstrijken van 45 minuten vóór POST blokkeert zonder herhaling', async () => lokaal(async ({ t, post, naBericht, kassa }) => {
   metFrietProef(t);
-  naBericht(() => { Date.now = () => NU + 46 * 60_000; });
+  const start = Date.now();
+  naBericht(() => { Date.now = () => start + 46 * 60_000; });
   assertEquals((await (await post(fr01)).json()).status, 'geblokkeerd');
   assertEquals(kassa.length, 0);
   assertEquals(t.externe_bestelling_poging[6].uitkomst, 'niet_verstuurd');
@@ -791,12 +800,12 @@ Deno.test('FR01 exact één Zoete Aardappel Friet €7,00 met btw en betaalarray
   assertEquals((await Promise.all([post(fr01), post(fr01)])).map(r => r.status).sort(), [200, 409]);
   assertEquals((await post(fr01)).status, 409);
   assertEquals(kassa.length, 1);
-  assertEquals(kassa[0].externalReference, 'PV-PRINT-MID-20261122-FR01');
-  assertEquals(kassa[0].description, 'PV-PRINT-MID-20261122-FR01 — Pura Test');
+  assertEquals(kassa[0].externalReference, 'PV-PRINT-MID-20261123-FR01');
+  assertEquals(kassa[0].description, 'PV-PRINT-MID-20261123-FR01 — Pura Test');
   assertEquals(kassa[0].note, 'TEST FR01 – NIET BEREIDEN');
   assertEquals(kassa[0].type, 'takeaway');
   assertEquals(kassa[0].customerId, 13597022);
-  assertEquals(kassa[0].deliveryDate, new Date(NU).toISOString());
+  assertEquals(kassa[0].deliveryDate, new Date(Date.now()).toISOString());
   assertEquals(kassa[0].orderItems, [{ productId: 4636994, amount: 1, unitPrice: 7, totalPrice: 7, unitPriceWithoutVat: 6.422, totalPriceWithoutVat: 6.42, modifiers: [], subitems: [] }]);
   assertEquals(kassa[0].orderPayments, [{ amount: 7, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
   assertEquals(t.externe_bestellingen[6].id, FRIET_PROEF.orderId);
@@ -846,7 +855,7 @@ for (const mode of ['timeout', 'weigering']) Deno.test('FR01 ' + mode + ' nooit 
 Deno.test('FR01 weigert verlopen Amsterdamse datum en gewijzigde opdracht', async () => lokaal(async ({ t, post, kassa }) => {
   metFrietProef(t);
   for (const b of [{ ...fr01, bevestiging: false }, { ...fr01, referentie: 'ANDER' }, { ...fr01, regels: [] }]) assertEquals((await post(b)).status, 400);
-  Date.now = () => Date.parse('2026-11-22T23:00:00Z');
+  Date.now = () => Date.parse('2026-11-23T23:00:00Z');
   assertEquals((await post(fr01)).status, 409); assertEquals(kassa.length, 0);
 }));
 
@@ -874,4 +883,34 @@ for (const [naam, wijzig] of [
 Deno.test('DE01 niet uitvoerbaar zolang delivery zonder adres/dispatch onbewezen is', async () => lokaal(async ({ post, t, kassa }) => {
   const r = await post({ actie: 'print_proef_de01', referentie: 'PV-PRINT-MID-20261122-DE01', bevestiging: true });
   assertEquals(r.status, 400); assertEquals(kassa.length, 0); assertEquals(t.externe_bestellingen.length, 0);
+}));
+
+Deno.test('FR01 alleen 23 november Amsterdam; permanente IDs ongewijzigd', () => {
+  assertEquals(FRIET_PROEF.orderId, 'd301660d-5bba-4aa2-8d97-7e0db78af101');
+  assertEquals(FRIET_PROEF.pogingId, '6c81d315-344b-487e-89d7-dc92d1a9f101');
+  assertEquals(proefDatum(Date.parse('2026-11-22T22:59:59Z'), FRIET_PROEF), false);
+  assertEquals(proefDatum(Date.parse('2026-11-22T23:00:00Z'), FRIET_PROEF), true);
+  assertEquals(proefDatum(Date.parse('2026-11-23T22:59:59Z'), FRIET_PROEF), true);
+  assertEquals(proefDatum(Date.parse('2026-11-23T23:00:00Z'), FRIET_PROEF), false);
+});
+for (const ref of [FRIET_OUDE_REFERENTIE, FRIET_PROEF.referentie]) Deno.test(`FR01 partneruitsluiting beide datums ${ref}`, async () => lokaal(async ({ t, post, partner, kassa }) => {
+  metFrietProef(t);
+  assertEquals((await partner({ ...proefInvoer(Date.now(), FRIET_PROEF), bestelnummer: ref })).status, 403);
+  assertEquals((await partner({ actie: 'ophaaltijd', bestelnummer: ref, modus: 'live', vestiging: '36864', ophaaltijd: new Date(Date.now()).toISOString() })).status, 403);
+  if (ref === FRIET_OUDE_REFERENTIE) assertEquals((await post({ ...fr01, referentie: ref })).status, 400);
+  assertEquals(kassa.length, 0);
+  assertEquals(t.externe_bestellingen.length, 6);
+}));
+for (const field of ['extern_id', 'referentie']) Deno.test(`FR01 oude referentie via ${field} blokkeert nieuwe claim`, async () => lokaal(async ({ t, post, kassa }) => {
+  metFrietProef(t);
+  t.externe_bestellingen.push({ id: 'oude-rij', [field]: FRIET_OUDE_REFERENTIE, modus: 'live', merchant_id: '36864', status: 'verzonden', lightspeed_order_id: '8001' });
+  assertEquals((await post(fr01)).status, 409);
+  assertEquals(kassa.length, 0);
+  assertEquals(t.externe_bestelling_poging.length, 6);
+}));
+Deno.test('FR01 bestaand gedeeld order-ID blokkeert ook afwijkende referentie', async () => lokaal(async ({ t, post, kassa }) => {
+  metFrietProef(t);
+  t.externe_bestellingen.push({ id: FRIET_PROEF.orderId, extern_id: 'AFWIJKEND', status: 'geblokkeerd' });
+  assertEquals((await post(fr01)).status, 409);
+  assertEquals(kassa.length, 0);
 }));

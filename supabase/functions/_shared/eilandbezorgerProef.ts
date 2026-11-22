@@ -44,8 +44,9 @@ export const ZEVENDE_PROEF = {
   pogingId: 'c2341312-8de0-461f-ac8a-8225fba0ab07',
   vrijgave: Symbol('owner-only-ginger-beer-gb07'),
 } as const;
+export const FRIET_OUDE_REFERENTIE = 'PV-PRINT-MID-20261122-FR01';
 export const FRIET_PROEF = {
-  referentie: 'PV-PRINT-MID-20261122-FR01',
+  referentie: 'PV-PRINT-MID-20261123-FR01',
   orderId: 'd301660d-5bba-4aa2-8d97-7e0db78af101',
   pogingId: '6c81d315-344b-487e-89d7-dc92d1a9f101',
   vrijgave: Symbol('owner-only-print-fr01'),
@@ -59,6 +60,7 @@ export const PROEF_EERSTE_HASH = '66b58a21487145e5ab2045f71ac7f5ee4995e2df680504
 export const PROEF_BLOKKADE = 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
 export const PROEF_HERVAT_REDEN = 'Eenmalige hervatting van eerste ongezonden fysieke proef; gewone liveverzending blijft uit.';
 export function herkenProef(r: { extern_id?: string; referentie?: string; id?: string } | null | undefined) {
+  if (r?.extern_id === FRIET_OUDE_REFERENTIE || r?.referentie === FRIET_OUDE_REFERENTIE) return FRIET_PROEF;
   return [EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF].find(p => r?.extern_id === p.referentie || r?.referentie === p.referentie || r?.id === p.orderId);
 }
 export const isProef = (r: any) => herkenProef(r) !== undefined;
@@ -77,14 +79,14 @@ export function proefInvoer(nu: number, proef: VasteProef = EERSTE_PROEF) {
     bedragen: { restaurant_cent: a.cent, bezorgkosten_cent: 0, fooi_cent: 0, korting: null }, betaling: { wijze: 'vooraf_betaald' } });
 }
 
-export function proefDatum(nu: number) {
+export function proefDatum(nu: number, proef: VasteProef = EERSTE_PROEF) {
   const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(nu));
-  return ['year', 'month', 'day'].map((k) => p.find((x) => x.type === k)?.value).join('-') === '2026-11-22';
+  return ['year', 'month', 'day'].map((k) => p.find((x) => x.type === k)?.value).join('-') === (proef === FRIET_PROEF ? '2026-11-23' : '2026-11-22');
 }
 
 /** Fail closed, ook als een uitlezing ontbreekt. Geen tokenbeheer of Lightspeed-verzoeken. */
 export async function proefControle(admin: any, nu: number, proef: VasteProef = EERSTE_PROEF) {
-  if (!proefDatum(nu)) return { fout: 'De eenmalige proef is verlopen (Amsterdam, 22 november 2026).' };
+  if (!proefDatum(nu, proef)) return { fout: `De eenmalige proef is verlopen (Amsterdam, ${proef === FRIET_PROEF ? '23' : '22'} november 2026).` };
   const [c, v, k, conn] = await Promise.all([
     admin.from('externe_kassa_config').select('*').eq('vestiging', 'Midsland').maybeSingle(),
     admin.from('fase2_vlag').select('aan').eq('vestiging', 'Midsland').eq('vlag', 'eilandbezorger_live').maybeSingle(),
