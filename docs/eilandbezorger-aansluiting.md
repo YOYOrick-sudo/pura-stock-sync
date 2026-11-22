@@ -120,8 +120,8 @@ Annuleren of wijzigen ná verzending: telefonisch met het restaurant.
 ## Stand van de fysieke proef (22 november 2026)
 Alleen bestaande instellingen uitgelezen; geen kassaverzoek uitgevoerd.
 - Midsland-liveverzending: **uit**; blijft uit.
-- Vaste klant-ID voor ‘Eilandbezorger’: **nog niet ingevuld**. Laat Yorick de juiste bestaande klant en ID bevestigen.
-- Betaalwijze-ID en betaalwijze-type-ID: **nog niet ingevuld**. De bestaande betaalwijze ‘eilandbezorger’ is daarmee nog niet aan deze koppeling gekoppeld; of zij in Lightspeed actief en correct ingesteld is, is niet bevestigd.
+- Vaste klant-ID: bij de eerste controle leeg; bij de eindcontrole van deze voorbereiding **inmiddels ingevuld**. In deze beurt niet gekozen of gewijzigd; de juiste klantkaart wordt in het afzonderlijke bevestigingstraject gecontroleerd. Geen klantgegevens bij Lightspeed opgevraagd.
+- Betaalwijze ‘Eilandbezorger’: **ID 285794, typeId 4**, bevestigd met HTTP 200 via de gerichte paymenttype-GET en opgeslagen voor Midsland. Yorick heeft Card/type 4 en Auto finalize in de backoffice bevestigd; automatisch afslaan bij een fysieke order blijft te controleren.
 - Orderroute: `customer_order`. Geen company-ID nodig voor deze variant; daadwerkelijke verwerking moet de kassaproef bevestigen.
 - Frietcode `PV-FFA8275F` is gekoppeld aan kassaproduct `4636994`, €7 incl. btw. Andere onzekere producten/formaat-/extrakoppelingen blijven open; de bestaande prijscontroles blijven gelden.
 - Historische test `EB-TEST-20261122-120013` blijft `test_ok` en wordt niet aangepast of verzonden.
@@ -132,13 +132,42 @@ Controleer ontvangst/testmodus, een gesimuleerde liveweg met vaste klant, ontbre
 
 Uitgevoerd: 40 lokale tests geslaagd, waaronder vier tests door de volledige ontvangfunctie met uitsluitend een database/kassa in geheugen. Geen echte kassatoegang, klantaanmaak of nieuwe opgeslagen testorder.
 
-## Begeleide kassaproef (pas na akkoord Yorick)
-Gebruik een **nieuw** bestelnummer (bijvoorbeeld `EB-PROEF-20261122-1`), `modus: "live"`, gastnaam zonder contactvelden, 3× friet à €7, totaal €21 en `opmerking: "Saus apart"`. Vul eerst de bevestigde vaste klant-ID en beide betaalwijze-IDs in; zet live alleen bewust voor de begeleide proef aan.
+## Eenmalige fysieke Ginger Beer-proef — alleen voorbereid
+**Nog niet uitvoeren: wacht op de afzonderlijke expliciete uitvoeropdracht van Yorick en de bevestiging van de vaste klantkaart.** De voorbereiding maakt geen proeforder aan, kiest geen klant-ID en stuurt niets naar Lightspeed.
 
-Controleer op de fysieke kassa:
-1. Bestelnummer en **Sanne de Vries** op keukenbon én klantbon; `Saus apart` exact in de aparte notitie.
-2. Eén keukenbon, 3× friet, totaal €21.
-3. €21 geboekt op de bestaande betaalwijze ‘eilandbezorger’, €0 open en automatisch afgeslagen zonder handwerk.
-4. Bij timeout: niet opnieuw versturen met een nieuw nummer; eerst status/teruglezen controleren. Afdruk op beide bonnen en automatisch afslaan zijn **nog niet bewezen**.
+Deze uitzondering is uitsluitend geldig op **22 november 2026, Europe/Amsterdam**, en vereist dat gewone liveverzending expliciet **uit** staat. Ze werkt alleen via de bestaande Pura-beheerfunctie, met een ingelogde actieve eigenaar. De partner-ontvangsleutel, managers en cron hebben geen toegang. Er is geen nieuwe schermknop of frontendpublicatie.
+
+Exacte normale functieaanroep vanuit de bestaande ingelogde Pura-client (`@/integrations/supabase/client`), uitsluitend na uitvoerakkoord:
+```typescript
+const { data, error } = await supabase.functions.invoke('eilandbezorger-beheer', {
+  body: {
+    actie: 'ginger_beer_proef',
+    referentie: 'PV-PROEF-MID-20261122-GB01',
+    bevestiging: true,
+  },
+});
+```
+Dit is de bestaande Pura-aanroepwijze, niet een verzoek rechtstreeks naar Lightspeed en geen los in de browserconsole beschikbaar gemaakte client. In de Lovable-editor kan Yorick later expliciet opdracht geven om deze ene actie met zijn beveiligde Pura-preview-eigenaarslogin uit te voeren; niet de partnerontvangfunctie gebruiken. De bestaande bestellijst op `/cijfers/eilandbezorger` toont daarna de proef en haar pogingen/status.
+
+Alle bestellingvelden worden vast server-side opgebouwd; vrije product-, klant- of bestellinginvoer wordt geweigerd:
+- Referentie én bestelnummer `PV-PROEF-MID-20261122-GB01`; nieuwe live-proef, nooit een omgezette test.
+- Midsland `36864`, 1× `PV-0680E844` Naturfrisk Ginger beer → `4636894`, exact €4,90 incl. btw.
+- `description`: `PV-PROEF-MID-20261122-GB01 — Pura Test`.
+- `note`: exact `TEST – niet klaarmaken`.
+- Betaalobject: €4,90, bestaande betaalwijze `285794`, type `4`, fooi 0. Geen incasso of nieuwe betaalwijze.
+- Geen extra’s, korting of bezorgkosten. Ophaaltijd is het uitvoermoment, dus binnen het bestaande afhaalvenster; geen geplande wachtrij.
+- Alleen de afzonderlijk bevestigde, bestaande vaste klant-ID uit de Midsland-configuratie. Ontbreken of tussentijdse wijziging blokkeert veilig; de proef zoekt, maakt of wijzigt geen klant.
+
+De referentie is voor partneraanlevering en tijdwijzigingen gereserveerd. Normale vrijgave/herverzending en de normale verzender kunnen deze proef niet versturen. Een unieke order-ID/referentie en permanente unieke poging-ID voorkomen een tweede POST, ook na gelijktijdigheid, weigering of verloren antwoord. **Eenmaal geclaimd nooit opnieuw proberen**: een storing vóór het verzoek kan daarom een ongezonden proef opleveren. Historie blijft bewaard; status/teruglezen controleren, niet omzeilen met een ander nummer.
+
+Voorbereiding geverifieerd met **82 lokale tests** zonder netwerkrechten; alleen `eilandbezorger-beheer` en `eilandbezorger-bestelling` uitgerold. Eindcontrole: live uit, betaalwijze ongewijzigd `285794`/`4`, nul opgeslagen proeforders. Geen Lightspeed-aanroep, klantmutatie, live-vlagwijziging of frontendpublicatie in deze voorbereiding.
+
+Vóór en direct voor het latere kassaverzoek worden datum, actieve eigenaarsrol, vaste klant, live-uit, betaalwijze, actieve exacte productmapping en afhaalvenster opnieuw gecontroleerd. Geen globale aan-uittruc. Na Amsterdamse middernacht vervalt de actie vanzelf.
+
+Controleer tijdens de begeleide fysieke proef:
+1. Bestelnummer en **Pura Test** op keukenbon én klantbon; `TEST – niet klaarmaken` exact in de aparte notitie.
+2. Eén keukenbon, 1× Ginger beer, totaal €4,90; team maakt niets klaar.
+3. €4,90 op Eilandbezorger, €0 open; automatisch accepteren/voltooien via het echte apparaatprofiel en afslaan, zonder incasso of app-vlagsimulatie.
+4. Bij onzeker antwoord: alleen status/pogingen uitlezen; geen tweede verzending. Afdruk op beide bonnen, betaalobjectverwerking en automatisch afslaan blijven fysiek onbevestigd.
 
 Geplande orders gaan pas door wanneer live aan staat en de instellingen compleet zijn. Kortingen blijven afgekeurd. Annuleren of wijzigen na verzending gaat telefonisch.

@@ -1,6 +1,7 @@
 import { geldigToken } from './lightspeedToken.ts';
 import { BestellingSchema, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 import { vasteKlantId } from './eilandbezorgerKlant.ts';
+import { exacteProef, isProef, proefControle, PROEF_POGING_ID, PROEF_VRIJGAVE } from './eilandbezorgerProef.ts';
 
 export const API = 'https://lightspeedapis.com/resto';
 
@@ -21,14 +22,26 @@ export async function meld(admin: any, vestiging: string, titel: string, tekst: 
 
 type Haal = typeof fetch;
 /** Eén verzendpoging. Verwacht een rij met status 'verzenden' (door de aanroeper geclaimd). */
-export async function verzend(admin: any, rij: any, haal: Haal = fetch) {
+export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave?: symbol) {
   // Verdediging op alle aanroeppaden, vóór tokenbeheer of een kassaverzoek.
   if (rij.modus !== 'live' || rij.vestiging !== 'Midsland' || rij.status !== 'verzenden') return rij;
+  const proef = isProef(rij);
+  if (proef && vrijgave !== PROEF_VRIJGAVE) return rij;
   const [{ data: cfg }, { data: vlag }] = await Promise.all([
     admin.from('externe_kassa_config').select('*').eq('vestiging', rij.vestiging).maybeSingle(),
     admin.from('fase2_vlag').select('aan').eq('vestiging', rij.vestiging).eq('vlag', 'eilandbezorger_live').maybeSingle(),
   ]);
-  const redenBlokkade = !vlag?.aan ? 'Live verzending staat uit voor deze vestiging.' : kassaBlokkade(cfg);
+  const controleProef = async () => {
+    const c = await proefControle(admin, Date.now());
+    if ('fout' in c) return c.fout;
+    if (String(c.cfg.lightspeed_klant_id) !== String(cfg?.lightspeed_klant_id) || !exacteProef(rij, Date.now(), c.cfg, c.regels)) return 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
+    const { data: rollen, error } = await admin.from('user_roles').select('role').eq('user_id', rij.vrijgegeven_door).eq('is_active', true).in('role', ['owner', 'admin']);
+    if (error || !rollen?.length) return 'Alleen een actieve eigenaar mag de vaste proef verzenden.';
+    const actueel = await admin.from('externe_bestellingen').select('status, versie').eq('id', rij.id).maybeSingle();
+    if (actueel.error || actueel.data?.status !== 'verzenden' || actueel.data?.versie !== rij.versie) return 'Proef is intussen gewijzigd; geen verzending.';
+    return null;
+  };
+  const redenBlokkade = proef ? await controleProef() : !vlag?.aan ? 'Live verzending staat uit voor deze vestiging.' : kassaBlokkade(cfg);
   if (redenBlokkade) return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, redenBlokkade) ?? rij;
   const klantId = vasteKlantId(cfg?.lightspeed_klant_id);
   if (!klantId) return rij;
@@ -41,7 +54,7 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch) {
     klantId, route: cfg.order_route, companyId: cfg.lightspeed_company_id });
   const pad = orderPad(cfg.order_route, klantId);
   if (!pad) return rij;
-  const { data: poging, error } = await admin.from('externe_bestelling_poging').insert({ bestelling_id: rij.id, versie: rij.versie, soort: 'verzenden' }).select('id').maybeSingle();
+  const { data: poging, error } = await admin.from('externe_bestelling_poging').insert({ ...(proef ? { id: PROEF_POGING_ID } : {}), bestelling_id: rij.id, versie: rij.versie, soort: 'verzenden' }).select('id').maybeSingle();
   if (error || !poging) return rij; // er loopt al een poging
   let http: number | null = null, body = '';
   const tok = await geldigToken(admin, rij.vestiging);
@@ -51,7 +64,14 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch) {
     if (r) await meld(admin, rij.vestiging, 'Eilandbezorger niet verstuurd', `${rij.extern_id}: kassatoegang mislukt`);
     return r ?? rij;
   }
-  await admin.from('externe_bestellingen').update({ lightspeed_klant_id: klantId, orderbericht: bericht }).eq('id', rij.id).eq('versie', rij.versie);
+  const opgeslagen = await admin.from('externe_bestellingen').update({ lightspeed_klant_id: klantId, orderbericht: bericht }).eq('id', rij.id).eq('versie', rij.versie);
+  if (proef) {
+    const blokkade = opgeslagen.error ? 'Kassabericht kon niet worden opgeslagen.' : await controleProef();
+    if (blokkade) {
+      await admin.from('externe_bestelling_poging').update({ uitkomst: 'niet_verstuurd', antwoord: blokkade, klaar_op: new Date().toISOString() }).eq('id', poging.id);
+      return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, blokkade) ?? rij;
+    }
+  }
   try {
     const res = await haal(API + pad, { method: 'POST', headers: { Authorization: `Bearer ${tok.token}`, 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(bericht), signal: AbortSignal.timeout(20_000) });
     http = res.status; body = (await res.text()).slice(0, 2000);

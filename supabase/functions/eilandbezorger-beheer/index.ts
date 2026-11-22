@@ -6,9 +6,12 @@ import { z } from 'npm:zod@3.23.8';
 import { kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
+import { isProef, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
+import { gingerBeerProef } from './proef.ts';
 
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 const Schema = z.discriminatedUnion('actie', [
+  z.object({ actie: z.literal('ginger_beer_proef'), referentie: z.literal(PROEF_REFERENTIE), bevestiging: z.literal(true) }).strict(),
   z.object({ actie: z.literal('annuleren'), id: z.string().uuid(), reden: z.string().trim().min(3).max(300) }),
   z.object({ actie: z.literal('vrijgeven'), id: z.string().uuid(), tijd_voorbij_akkoord: z.boolean().optional() }),
   z.object({ actie: z.literal('teruglezen'), id: z.string().uuid() }),
@@ -110,6 +113,12 @@ Deno.serve(async (req) => {
     const eigenaar = (rollen ?? []).some((r: any) => ['owner', 'admin'].includes(r.role));
     const magVestiging = (v: string) => eigenaar || (rollen ?? []).some((r: any) => r.role === 'manager' && r.location === v);
 
+    if (a.actie === 'ginger_beer_proef') {
+      if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      const uit = await gingerBeerProef(admin, u.user.id);
+      return json(uit, 'fout' in uit ? 409 : 200);
+    }
+
     if (a.actie === 'kassa_instellingen') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
       return json(await kassaInstellingen(admin, a.alleen_betaalwijzen === true));
@@ -128,6 +137,7 @@ Deno.serve(async (req) => {
     const { data: r } = await admin.from('externe_bestellingen').select('*').eq('id', a.id).maybeSingle();
     if (!r) return json({ fout: 'onbekend' }, 404);
     if (!magVestiging(r.vestiging)) return json({ fout: 'geen toegang' }, 403);
+    if (isProef(r) && ['vrijgeven', 'herverzenden'].includes(a.actie)) return json({ fout: 'Eenmalige proef: normale vrijgave en herverzending zijn uitgesloten.' }, 409);
     const door = u.user.id;
 
     if (a.actie === 'annuleren') {
