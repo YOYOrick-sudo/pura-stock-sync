@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] GB04 uitsluitend voorbereiden: vaste owner-only actie, permanente order/poging, bestaande btw/schrijver hergebruiken, lokale regressies en alleen noodzakelijke functies uitrollen; wacht op planakkoord, geen fysieke uitvoering.
 - [x] GB03: vaste owner-only proef met eigen permanente order/poging toegevoegd; 228 lokale tests geslaagd; alleen beide betrokken functies uitgerold en GB03-validatie actief gecontroleerd; GB01/GB02 behouden en live uit.
 - [ ] GB03 één echte uitvoering en uitsluitend die order teruglezen — geblokkeerd: beveiligde aanmelding als oorspronkelijke Pura-eigenaar vereist; gerichte aanmelding vroeg toestemming die hier niet beschikbaar was, eigen-accountaanmelding leverde een ander account; GB03 heeft geen order of poging.
 - [x] Eilandbezorger btw-correctie: actuele product-/taxclass-GET bevestigd, 204 lokale regressies en beide functiechecks geslaagd; uitsluitend twee kassafuncties uitgerold en alleen-lezen actief gecontroleerd; geen fysieke proef, GB01/GB02 behouden en live uit.
