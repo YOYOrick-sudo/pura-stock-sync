@@ -1,6 +1,7 @@
 import { geldigToken } from './lightspeedToken.ts';
 import { BestellingSchema, gelijkJson, vingerafdruk, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 import { vasteKlantId } from './eilandbezorgerKlant.ts';
+import { actuelePrijsRegels } from './eilandbezorgerPrijzen.ts';
 import { EERSTE_PROEF, TWEEDE_PROEF, eersteProef, exacteProef, herkenProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_OWNER_ID } from './eilandbezorgerProef.ts';
 
 export const API = 'https://lightspeedapis.com/resto';
@@ -66,11 +67,15 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave
   if (!klantId) return rij;
   const invoer = BestellingSchema.safeParse(rij.invoer);
   if (!invoer.success || !Array.isArray(rij.regels)) return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, 'Opgeslagen ordergegevens ongeldig; controleer bestelling.') ?? rij;
+  const prijzen = await actuelePrijsRegels(admin, rij.vestiging, rij.regels, haal);
+  if ('fout' in prijzen) return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, prijzen.fout) ?? rij;
   // Ook historische orders krijgen een schoon kassabericht; geen contactgegevens kopiëren.
-  const bericht = orderbericht({ referentie: rij.referentie, bestelnummer: rij.extern_id, klant: invoer.data.klant,
-    opmerking: invoer.data.opmerking, ophaaltijd: rij.ophaaltijd, regels: rij.regels, restaurant_cent: rij.restaurant_cent,
+  let bericht: ReturnType<typeof orderbericht>;
+  try { bericht = orderbericht({ referentie: rij.referentie, bestelnummer: rij.extern_id, klant: invoer.data.klant,
+    opmerking: invoer.data.opmerking, ophaaltijd: rij.ophaaltijd, regels: prijzen.regels, restaurant_cent: rij.restaurant_cent,
     betaalwijzeId: cfg.lightspeed_betaalwijze_id, betaalwijzeTypeId: cfg.lightspeed_betaalwijze_type_id,
-    klantId, route: cfg.order_route, companyId: cfg.lightspeed_company_id });
+    klantId, route: cfg.order_route, companyId: cfg.lightspeed_company_id }); }
+  catch (e) { return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, e instanceof Error ? e.message : 'Kassabericht kon niet veilig worden opgebouwd.') ?? rij; }
   const pad = orderPad(cfg.order_route, klantId);
   if (!pad) return rij;
   const { data: poging, error } = await admin.from('externe_bestelling_poging').insert({ ...(proef ? { id: proef.pogingId } : {}), bestelling_id: rij.id, versie: rij.versie, soort: 'verzenden' }).select('id').maybeSingle();

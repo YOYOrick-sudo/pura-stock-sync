@@ -50,6 +50,7 @@ Regels:
 - `korting` (optioneel): `{ actiecode, oorspronkelijk_cent, korting_cent, betaald_door: "eilandbezorger"|"restaurant" }`. **Kortingen worden nu afgekeurd** ("Korting nog niet ondersteund") tot een kassaproef.
 - `betaling.wijze` moet `vooraf_betaald` zijn.
 - Productcodes moeten door Pura gekoppeld zijn; onbekende code of prijsafwijking > 1 cent: afgekeurd.
+- Vóór plannen/verzenden moet de actuele bezorgprijs exact aansluiten op het ontvangen bedrag; de eerdere 1-centmarge bij de basiskoppeling geeft geen toestemming voor een afwijkende kassaprijs. Onzekere netto-/btw-gegevens: `geblokkeerd`, zonder kassapoging.
 
 ## Ophaaltijd wijzigen (POST)
 ```json
@@ -186,3 +187,39 @@ Vereist: actieve oorspronkelijke eigenaar, klantkaart **13597022**, betaalwijze 
 De bewaarde afhaaltijd is **16:38:29.908 Amsterdam**. Hervatting verloopt na **17:23:29.908 Amsterdam op 22 november 2026**, eerder dan de kalenderdaggrens; tijd en venster worden niet aangepast. Bij een storing na claim kan de proef ongezonden blijven: alleen rapporteren, niet automatisch opnieuw hervatten.
 
 Herstelvoorbereiding: **147 lokale tests geslaagd**, inclusief de werkelijke jsonb-volgorde, twee parallelle hervattingen, strikte inhoud/configuratie, alle eerdere pogingen en verloren antwoorden. Read-only database-roundtrip bevestigt beide JSON-objecten en exact alle zes productvelden. Alleen `eilandbezorger-beheer` is opnieuw uitgerold; geen echte hervattingsactie uitgevoerd. Eindcontrole: dezelfde rij staat op versie 3/`geblokkeerd`, nul pogingen, geen uitgaand bericht/order-ID, klant 13597022 en live uit.
+
+## Btw-correctie na GB02 — 22 november 2026
+GB01 en GB02 zijn definitief geweigerd (elk één HTTP-400-poging) en worden door deze correctie niet gewijzigd of hervat. GB02 meldde `orderItems[0].unitPriceWithoutVat may not be null`. Geen volgende fysieke proef is vrijgegeven; gewone liveverzending blijft uit.
+
+### Bewezen bron en velden
+De bestaande eigenaaractie las alle 1.154 Midsland-producten. Product **4636894**, **Naturfrisk Ginger beer**, PLU **Kd-a11**, externe koppeling **PV-0680E844** gaf daadwerkelijk:
+```json
+{"id":4636894,"deliveryPrice":4.9,"deliveryPriceWithoutVat":4.4954,"deliveryTaxClass":"BUILTIN-9.0","takeawayPrice":4.9,"takeawayPriceWithoutVat":4.4954,"takeawayTaxClass":"BUILTIN-9.0"}
+```
+Bron: GET `/rest/inventory/product` via de bestaande geautoriseerde Midsland-kaartactie. Runtime gebruikt de gedocumenteerde gerichte GET `/rest/inventory/product/{productId}` en GET `/rest/onlineordering/taxclass` (`id`, `taxRate`), via centraal tokenbeheer. Geen btw-percentage wordt uit een naam gegokt.
+
+Documentatie: [Inventory Product](https://developers.lightspeedhq.com/resto-api/endpoints/inventoryproduct/) en [Online Ordering](https://developers.lightspeedhq.com/resto-api/endpoints/onlineordering/).
+
+### Bestaande koppelingen en onzekerheden
+Geen migratie of bulkverrijking van koppelingen. De definitieve product-ID na formaatkeuze zoekt de actuele bezorgprijs en btw in de kaart. Een isolate-local cache van 60 seconden bundelt identieke verzoeken per vestiging/pad (maximaal 200 entries), ook bij gelijktijdigheid; fouten worden kort 15 seconden onthouden, nooit automatisch herhaald of vervangen door oude data. Nieuwe functie-isolates hebben hun eigen cache.
+
+Ontbrekend direct netto mag alleen afgeleid worden met de daadwerkelijk teruggelezen bezorgklasse/taxRate. Bruto moet exact kloppen; direct netto wordt op vier-decimale catalogusprecisie tegen bruto/tarief gecontroleerd. Regelnetto wordt pas na vermenigvuldiging op centen afgerond: 1× Ginger Beer €4,50 netto, 3× €13,49 netto, 4× €17,98 netto. Niet eerst per stuk op €4,50 afronden.
+
+Het bestaande ordertype `takeaway` blijft behouden: afhaal- en bezorgprijs/btw moeten daarvoor overeenkomen, anders blokkeren we in plaats van de keukenflow stilzwijgend te veranderen. Bij de 1.154 gelezen producten kwamen afhaal- en bezorgprijzen en klassen overeen. Formaten vervangen het basisproduct één keer; de toeslag komt niet opnieuw op de bon.
+
+De echte productkaart bevat `additions` met groeps-ID, waarde-ID, `price`, **`priceWithoutVAT`**. Het order-modifierschema gebruikt **`modifierId`**, **`modifierValueId`**, **`description`**, **`price`**, **`priceWithoutVat`**, optioneel `plu`, niet productId/amount/unitPrice. Alleen één eenduidig gekoppelde gratis keuze met prijs en netto expliciet 0 wordt geschreven. Betaalde/meervoudige of niet aan het gerecht gekoppelde extra’s blijven geblokkeerd: aparte bezorg-btw en bedragoptelling zijn hiervoor niet bevestigd. De losse bestaande `/inventory/modifier`-diagnose gaf HTTP 404; er is niet naar een alternatieve schrijfroute uitgeweken.
+
+Testmodus doet geen Lightspeed-verzoek; zonder geverifieerde prijssnapshot blijft `orderbericht` null, terwijl invoer en teststatus behouden blijven. Planning en verzending controleren prijzen apart. Bij blokkade blijft de order zichtbaar met reden en is er geen Lightspeed-orderpoging.
+
+### Voorbeeld van de echte gedeelde serialisatie (lokaal / alleen-lezen)
+```json
+{"orderItems":[{"productId":4636894,"amount":1,"unitPrice":4.9,"totalPrice":4.9,"unitPriceWithoutVat":4.4954,"totalPriceWithoutVat":4.5,"modifiers":[],"subitems":[]}],"orderPayments":[{"amount":4.9,"paymentTypeId":285794,"paymentTypeTypeId":4,"tip":0}]}
+```
+Deze betaling registreert extern vooruitbetaald geld; geen incasso. Afdruk en automatisch finaliseren blijven uitsluitend bij een afzonderlijk goedgekeurde fysieke proef te bevestigen.
+
+### Alleen-lezen actieve controle
+Beide functies geven `X-Pura-Kassa-Schema: bezorg-netto-v1` in hun antwoord, ook op OPTIONS. Alleen een actieve eigenaar kan de bestaande kaartactie met `{"actie":"kaart","bron":"product","prijscontrole":true}` gebruiken: gerichte product-/taxclass-GET’s en een voorbeeld via dezelfde writer, geen bestelling, poging of kassaverzending. Dit is geen nieuwe proefactie.
+
+Actief gecontroleerd op 22 november 2026, 17:39–17:40 Amsterdam: beide OPTIONS-antwoorden HTTP 200 met schema `bezorg-netto-v1`. De eigenaar-diagnose antwoordde HTTP 200 met bovenstaand Ginger Beer-voorbeeld en de echte taxclass-respons `{"id":"BUILTIN-9.0","description":"Tax rate 9.0","taxRate":9}`. Er is geen order-POST uitgevoerd. De schemaheader is via een HTTP-client gelezen; de browser stelt die custom header niet beschikbaar zonder expose-header.
+
+Eindregressie: **204 lokale tests geslaagd, 0 fouten**, met onderschepte HTTP en zonder netwerkrechten. Beide functie-entrypoints slagen voor `deno check`. Inclusief volledige ontvangst→verzending voor Ginger Beer 1×/3×, planning en hercontrole, 0/9/21%-fixtures, nulprijs, netto-/tariefconflicten, formaten, echte gratis-modifierstructuur, blokkade van onzekere betaalde extra’s, cache/429, historische duplicaten en alle GB01/GB02-proefbeveiligingen. Geen live-rooktest of nieuwe echte testorder.

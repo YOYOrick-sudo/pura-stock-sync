@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert@1';
 import { gelijkJson, vingerafdruk } from '../_shared/eilandbezorgerLogica.ts';
 import { PROEF_BLOKKADE, PROEF_EERSTE_HASH, PROEF_EERSTE_TIJD, PROEF_ORDER_ID, PROEF_OWNER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, proefInvoer } from '../_shared/eilandbezorgerProef.ts';
 import { hervatGingerBeerProef } from './proef.ts';
+import { mockKaart } from '../_shared/eilandbezorgerPrijsFixtures.ts';
 
 // Exacte read-only uitgelezen jsonb-teksten; geen gegevens in echte tabellen.
 const INVOER = '{"klant":{"naam":"Pura Test"},"modus":"live","regels":[{"code":"PV-0680E844","naam":"Naturfrisk Ginger beer","aantal":1,"extras":[],"stukprijs_cent":490}],"versie":1,"bedragen":{"korting":null,"fooi_cent":0,"restaurant_cent":490,"bezorgkosten_cent":0},"betaling":{"wijze":"vooraf_betaald"},"opmerking":"TEST – niet klaarmaken","vestiging":"36864","ophaaltijd":"2026-11-22T15:38:29.908Z","bestelnummer":"PV-PROEF-MID-20261122-GB01"}';
@@ -56,6 +57,7 @@ async function test(run:(s:ReturnType<typeof opslag>&{calls:Rij[];uit:()=>Promis
   const s=opslag(), fetchOud=globalThis.fetch, nuOud=Date.now; const calls:Rij[]=[];let mode='';
   Date.now=()=>Date.parse('2026-11-22T15:45:00Z');
   globalThis.fetch=(async (input:any,init:any)=>{
+    const kaart = mockKaart(input, init); if (kaart) return kaart;
     if(String(input)!=='https://lightspeedapis.com/resto/rest/onlineordering/customer/13597022/order' || init.method!=='POST')throw new Error('Geen andere kassa- of klantactie toegestaan');
     calls.push(JSON.parse(init.body));if(mode==='timeout')throw new Error('Verloren antwoord');
     return mode==='weigering'?Response.json({error:'geweigerd'},{status:400}):Response.json({id:8001},{status:201});

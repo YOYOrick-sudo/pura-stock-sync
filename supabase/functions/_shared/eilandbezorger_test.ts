@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert@1';
 import { BestellingSchema, beginStatus, controleer, gelijkeSleutel, uitkomstVan, vingerafdruk } from './eilandbezorgerLogica.ts';
 import { geldigToken } from './lightspeedToken.ts';
 import { verzend } from './eilandbezorgerVerzend.ts';
+import { mockKaart } from './eilandbezorgerPrijsFixtures.ts';
 
 // ---------- mini in-memory database ----------
 function fakeDb(tabellen: Record<string, any[]>) {
@@ -114,7 +115,7 @@ Deno.test('gelijktijdige tokenvernieuwing (omzet + order): één vernieuwing, be
 });
 
 function rijDb() {
-  const rij = { modus: 'live', referentie: 'EB-L-36864-EB1', restaurant_cent: 1500, regels: [], ophaaltijd: basis.ophaaltijd, id: 'b1', versie: 2, status: 'verzenden', vestiging: 'Midsland', extern_id: 'EB1', orderbericht: {}, invoer: { ...basis, modus: 'live', klant: { naam: 'An Gast' } } };
+  const rij = { modus: 'live', referentie: 'EB-L-36864-EB1', restaurant_cent: 1500, regels: [{ lightspeed_product_id: '2842282', naam: 'Fictief product', aantal: 2, stukprijs_cent: 750, extras: [] }], ophaaltijd: basis.ophaaltijd, id: 'b1', versie: 2, status: 'verzenden', vestiging: 'Midsland', extern_id: 'EB1', orderbericht: {}, invoer: { ...basis, modus: 'live', klant: { naam: 'An Gast' } } };
   const db = fakeDb({
     lightspeed_connections: [{ vestiging: 'Midsland', access_token: 't', refresh_token: 'r', token_expires_at: '2999-01-01T00:00:00Z', status: 'gekoppeld' }],
     externe_kassa_config: [{ vestiging: 'Midsland', lightspeed_klant_id: '1', lightspeed_betaalwijze_id: '2', lightspeed_betaalwijze_type_id: '3', order_route: 'customer_order' }],
@@ -125,18 +126,18 @@ function rijDb() {
 }
 Deno.test('Lightspeed verwerkt maar antwoord gaat verloren -> uitkomst_onbekend, één poging', async () => {
   const { db, rij } = rijDb(); let calls = 0;
-  const r = await verzend(db, { ...rij }, (async () => { calls++; throw new Error('timeout'); }) as any);
+  const r = await verzend(db, { ...rij }, (async (input: RequestInfo | URL, init?: RequestInit) => { const kaart = mockKaart(input, init); if (kaart) return kaart; calls++; throw new Error('timeout'); }) as typeof fetch);
   assertEquals(r.status, 'uitkomst_onbekend'); assertEquals(calls, 1);
 });
 Deno.test('tweede gelijktijdige poging wordt geweigerd: precies één verzending', async () => {
   const { db, rij } = rijDb(); let calls = 0;
-  const traag = (async () => { calls++; await new Promise((r) => setTimeout(r, 20)); return new Response('{"id":5}', { status: 201 }); }) as any;
+  const traag = (async (input: RequestInfo | URL, init?: RequestInit) => { const kaart = mockKaart(input, init); if (kaart) return kaart; calls++; await new Promise((r) => setTimeout(r, 20)); return new Response('{"id":5}', { status: 201 }); }) as typeof fetch;
   await Promise.all([verzend(db, { ...rij }, traag), verzend(db, { ...rij }, traag)]);
   assertEquals(calls, 1);
 });
 Deno.test('laat succesantwoord na vastloop-markering -> verzonden met order-ID, geen nieuwe poging', async () => {
   const { db, rij } = rijDb(); let calls = 0;
-  const traag = (async () => { calls++; const t = (db.from('externe_bestellingen') as any); await t.update({ status: 'uitkomst_onbekend', versie: 3 }).eq('id', 'b1').maybeSingle(); return new Response('{"id":9}', { status: 201 }); }) as any;
+  const traag = (async (input: RequestInfo | URL, init?: RequestInit) => { const kaart = mockKaart(input, init); if (kaart) return kaart; calls++; const t = (db.from('externe_bestellingen') as any); await t.update({ status: 'uitkomst_onbekend', versie: 3 }).eq('id', 'b1').maybeSingle(); return new Response('{"id":9}', { status: 201 }); }) as typeof fetch;
   const r = await verzend(db, { ...rij }, traag);
   assertEquals(calls, 1); assertEquals(r.status, 'verzonden'); assertEquals(r.lightspeed_order_id, '9');
 });

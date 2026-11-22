@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert@1';
 import { verzend } from './eilandbezorgerVerzend.ts';
 import { BestellingSchema, beginStatus, betaaldInBericht, controleer, orderbericht, kassaBlokkade, zelfdeBestelling, vingerafdruk } from './eilandbezorgerLogica.ts';
 import { gastNaam } from './eilandbezorgerKlant.ts';
+import { mockKaart, testPrijsRegels } from './eilandbezorgerPrijsFixtures.ts';
 
 // In-memory database met de unieke sleutel (vestiging, email) van externe_klant_koppeling.
 function db(start: Record<string, any[]> = {}) {
@@ -33,6 +34,7 @@ function db(start: Record<string, any[]> = {}) {
 function kassa(route: 'order' | 'establishmentorder' = 'order') {
   const orders: any[] = []; const calls: string[] = [];
   const haal = (async (url: string, init?: RequestInit) => {
+    const kaart = mockKaart(url, init); if (kaart) return kaart;
     calls.push(url);
     if (new URL(url).pathname !== `/resto/rest/onlineordering/customer/901/${route}` || init?.method !== 'POST') throw new Error('Verboden klantactie');
     orders.push({ pad: new URL(url).pathname, body: JSON.parse(String(init.body)) });
@@ -47,7 +49,7 @@ function bestelling(nr: string, opmerking: string, klant: any = gast) {
   const b = BestellingSchema.parse({ versie: 1, modus: 'live', bestelnummer: nr, vestiging: '36864', ophaaltijd: '2026-11-22T17:00:00+01:00', klant, opmerking,
     regels: [{ code: 'PV-FFA8275F', aantal: 3, stukprijs_cent: 700 }], bedragen: { restaurant_cent: 2100, korting: null }, betaling: { wijze: 'vooraf_betaald' } });
   const c = controleer(b, [friet as any]); if (!c.ok) throw new Error(c.reden);
-  const bericht = orderbericht({ referentie: 'EB-' + nr, bestelnummer: nr, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels: c.regels, restaurant_cent: 2100, betaalwijzeId: '77', betaalwijzeTypeId: '3', route: 'customer_order', klant: b.klant, klantId: '901' });
+  const bericht = orderbericht({ referentie: 'EB-' + nr, bestelnummer: nr, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels: testPrijsRegels(c.regels), restaurant_cent: 2100, betaalwijzeId: '77', betaalwijzeTypeId: '3', route: 'customer_order', klant: b.klant, klantId: '901' });
   return { id: 'r-' + nr, versie: 2, status: 'verzenden', modus: 'live', vestiging: 'Midsland', merchant_id: '36864', extern_id: nr, referentie: 'EB-' + nr, ophaaltijd: b.ophaaltijd, restaurant_cent: 2100, regels: c.regels, invoer: b, orderbericht: bericht };
 }
 const voeg = (d: any, r: any) => { d.t.externe_bestellingen.push({ ...r }); return { ...r }; };

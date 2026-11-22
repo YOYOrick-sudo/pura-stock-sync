@@ -6,8 +6,9 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { BestellingSchema, OphaaltijdSchema, VESTIGING_PER_MERCHANT, beginStatus, controleer, gelijkeSleutel, orderbericht, vingerafdruk, zelfdeBestelling, kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
 import { meld, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { isProef } from '../_shared/eilandbezorgerProef.ts';
+import { actuelePrijsRegels, KASSA_SCHEMA } from '../_shared/eilandbezorgerPrijzen.ts';
 
-const cors = { ...corsHeaders, 'Access-Control-Allow-Headers': `${corsHeaders['Access-Control-Allow-Headers']}, x-eilandbezorger-sleutel`, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
+const cors = { ...corsHeaders, 'X-Pura-Kassa-Schema': KASSA_SCHEMA, 'Access-Control-Allow-Headers': `${corsHeaders['Access-Control-Allow-Headers']}, x-eilandbezorger-sleutel`, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 function antwoord(r: any) {
@@ -80,12 +81,22 @@ Deno.serve(async (req) => {
     else ({ status, reden } = beginStatus({ modus, liveAan: vlag?.aan === true, configCompleet: !kassaBlokkade(cfg), configReden: kassaBlokkade(cfg), ophaaltijd: b.ophaaltijd, nu: Date.now(), vensterMin: cfg?.venster_minuten ?? 45 }));
 
     const regels = c.ok ? c.regels : null;
+    let kassabericht = null;
+    // Testmodus en live-uit vragen nooit Lightspeed om prijzen. Incomplete berichten blijven null.
+    if (regels && modus === 'live' && ['gepland', 'verzenden'].includes(status)) {
+      const prijzen = await actuelePrijsRegels(admin, vestiging, regels);
+      if ('fout' in prijzen) { status = 'geblokkeerd'; reden = prijzen.fout; }
+      else {
+        try { kassabericht = orderbericht({ referentie, bestelnummer: b.bestelnummer, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels: prijzen.regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null, betaalwijzeTypeId: cfg?.lightspeed_betaalwijze_type_id ?? null, klant: b.klant, klantId: cfg?.lightspeed_klant_id ?? null, route: cfg?.order_route, companyId: cfg?.lightspeed_company_id ?? null }); }
+        catch (e) { status = 'geblokkeerd'; reden = e instanceof Error ? e.message : 'Kassabericht kon niet veilig worden opgebouwd.'; }
+      }
+    }
     const { data: rij, error } = await admin.from('externe_bestellingen').insert({
       modus, vestiging, merchant_id: b.vestiging, extern_id: b.bestelnummer, referentie, vingerafdruk: vinger,
       status: status === 'verzenden' ? 'ontvangen' : status, reden: reden ?? null, ophaaltijd: b.ophaaltijd, bezorgtijd: b.bezorgtijd ?? null,
       restaurant_cent: b.bedragen.restaurant_cent, bezorgkosten_cent: b.bedragen.bezorgkosten_cent, fooi_cent: b.bedragen.fooi_cent, korting: b.bedragen.korting ?? null,
       invoer: b, regels,
-      orderbericht: regels ? orderbericht({ referentie, bestelnummer: b.bestelnummer, ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels, restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: cfg?.lightspeed_betaalwijze_id ?? null, betaalwijzeTypeId: cfg?.lightspeed_betaalwijze_type_id ?? null, klant: b.klant, klantId: cfg?.lightspeed_klant_id ?? null, route: cfg?.order_route, companyId: cfg?.lightspeed_company_id ?? null }) : null,
+      orderbericht: kassabericht,
     }).select('*').single();
     if (error) {
       if (error.code === '23505') { const r = await bestaand(); if (r) return herhaling(r); }

@@ -3,13 +3,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
-import { kassaBlokkade } from '../_shared/eilandbezorgerLogica.ts';
+import { kassaBlokkade, orderbericht } from '../_shared/eilandbezorgerLogica.ts';
+import { actuelePrijsRegels, KASSA_SCHEMA } from '../_shared/eilandbezorgerPrijzen.ts';
 import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { EERSTE_PROEF, TWEEDE_PROEF, isProef, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { gingerBeerProef, hervatGingerBeerProef } from './proef.ts';
 
-const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+const functieHeaders = { ...corsHeaders, 'X-Pura-Kassa-Schema': KASSA_SCHEMA };
+const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...functieHeaders, 'Content-Type': 'application/json' } });
 const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('ginger_beer_proef'), referentie: z.literal(PROEF_REFERENTIE), bevestiging: z.literal(true) }).strict(),
   z.object({ actie: z.literal('ginger_beer_proef_gb02'), referentie: z.literal(TWEEDE_PROEF.referentie), bevestiging: z.literal(true) }).strict(),
@@ -22,7 +24,7 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('live'), vestiging: z.enum(['Midsland']), aan: z.boolean() }),
   z.object({ actie: z.literal('ronde') }),
   z.object({ actie: z.literal('kassa_instellingen'), alleen_betaalwijzen: z.boolean().optional() }),
-  z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']) }),
+  z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']), prijscontrole: z.literal(true).optional() }),
 ]);
 
 // Alleen-lezen: volledige Lightspeed-kaart Midsland ophalen, alle pagina's. Nooit schrijven.
@@ -90,7 +92,7 @@ async function ronde(admin: any) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: functieHeaders });
   if (req.method !== 'POST') return json({ fout: 'alleen POST' }, 405);
   const url = Deno.env.get('SUPABASE_URL'), service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'), anon = Deno.env.get('SUPABASE_ANON_KEY');
   if (!url || !service || !anon) return json({ fout: 'serverconfiguratie ontbreekt' }, 500);
@@ -128,6 +130,15 @@ Deno.serve(async (req) => {
     }
     if (a.actie === 'kaart') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      if (a.prijscontrole) {
+        if (a.bron !== 'product') return json({ fout: 'Prijscontrole vereist bron product.' }, 400);
+        // Alleen-lezen bewijs door de echte shared writer; geen opslag, poging of order-POST.
+        const prijzen = await actuelePrijsRegels(admin, 'Midsland', [{ lightspeed_product_id: '4636894', naam: 'Naturfrisk Ginger beer', aantal: 1, stukprijs_cent: 490, extras: [] }]);
+        if ('fout' in prijzen) return json({ schema: KASSA_SCHEMA, fout: prijzen.fout }, 409);
+        const voorbeeld = orderbericht({ referentie: 'BTW-VOORBEELD-GINGER', klant: { naam: 'Pura Test' }, opmerking: 'TEST – niet klaarmaken', ophaaltijd: new Date().toISOString(), regels: prijzen.regels, restaurant_cent: 490, betaalwijzeId: '285794', betaalwijzeTypeId: '4' });
+        const p = prijzen.producten[0];
+        return json({ schema: KASSA_SCHEMA, merchant_id: '36864', product: { id: p.id, deliveryPrice: p.deliveryPrice, deliveryPriceWithoutVat: p.deliveryPriceWithoutVat, deliveryTaxClass: p.deliveryTaxClass, takeawayPrice: p.takeawayPrice, takeawayPriceWithoutVat: p.takeawayPriceWithoutVat, takeawayTaxClass: p.takeawayTaxClass }, btw: prijzen.klassen.filter(k => k.id === p.deliveryTaxClass), orderItems: voorbeeld.orderItems, orderPayments: voorbeeld.orderPayments, alleen_lezen: true });
+      }
       return json(await kaart(admin, a.bron));
     }
     if (a.actie === 'live') {

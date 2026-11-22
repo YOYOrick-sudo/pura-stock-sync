@@ -1,5 +1,6 @@
 import { z } from 'npm:zod@3.23.8';
 import { gastNaam, vasteKlantId } from './eilandbezorgerKlant.ts';
+import { regelEuro, type GeprijsdeRegel } from './eilandbezorgerPrijzen.ts';
 
 // Voorlopig alleen Midsland (besluit Yorick 20-11-2026).
 export const VESTIGING_PER_MERCHANT: Record<string, string> = { '36864': 'Midsland' };
@@ -152,9 +153,15 @@ export async function zelfdeBestelling(r: any, b: Bestelling, vinger: string): P
 export const centen = (euro: number) => Math.round(euro * 100);
 
 /** Vaste klant; orderspecifieke gastnaam en bestelnummer in description, opmerking exact in note. */
-export function orderbericht(p: { referentie: string; bestelnummer?: string; ophaaltijd: string; opmerking?: string; regels: Regel[]; restaurant_cent: number;
+export function orderbericht(p: { referentie: string; bestelnummer?: string; ophaaltijd: string; opmerking?: string; regels: GeprijsdeRegel[]; restaurant_cent: number;
   betaalwijzeId: string | null; betaalwijzeTypeId?: string | null; klantId?: string | null; route?: 'customer_order' | 'establishment_order'; companyId?: string | null; klant?: unknown }) {
   const est = p.route === 'establishment_order';
+  if (!p.regels.length || p.regels.some(r => !Number.isFinite(r.netto_euro) || r.netto_euro < 0 ||
+    !Number.isFinite(r.bezorg_btw_pct) || !Array.isArray(r.kassa_modifiers) ||
+    r.extras.some(e => e.stukprijs_cent !== 0)) ||
+    p.regels.reduce((s, r) => s + r.aantal * r.stukprijs_cent, 0) !== p.restaurant_cent) {
+    throw new Error('Geen volledig geverifieerde netto-/btw-gegevens voor het kassabericht.');
+  }
   const betaling = p.betaalwijzeId ? { amount: p.restaurant_cent / 100, paymentTypeId: Number(p.betaalwijzeId), paymentTypeTypeId: p.betaalwijzeTypeId ? Number(p.betaalwijzeTypeId) : undefined, tip: 0 } : undefined;
   return {
     ...(p.klantId ? { customerId: Number(p.klantId) } : {}),
@@ -168,7 +175,8 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
     orderItems: p.regels.map((r) => ({
       ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),
       amount: r.aantal, unitPrice: r.stukprijs_cent / 100, totalPrice: (r.aantal * r.stukprijs_cent) / 100,
-      modifiers: r.extras.map((e) => ({ productId: Number(e.lightspeed_product_id), amount: e.aantal, unitPrice: e.stukprijs_cent / 100 })),
+      unitPriceWithoutVat: r.netto_euro, totalPriceWithoutVat: regelEuro(r.aantal * r.netto_euro),
+      modifiers: r.kassa_modifiers,
       subitems: [],
     })),
     orderPayments: betaling ? [betaling] : undefined,

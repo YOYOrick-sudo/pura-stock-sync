@@ -3,6 +3,7 @@ import { assertEquals } from 'jsr:@std/assert@1';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { exacteProef, proefDatum, proefInvoer, PROEF_ORDER_ID, PROEF_POGING_ID, PROEF_REFERENTIE, PROEF_VRIJGAVE, PROEF_OWNER_ID, TWEEDE_PROEF } from '../_shared/eilandbezorgerProef.ts';
 import { verzend } from '../_shared/eilandbezorgerVerzend.ts';
+import { mockKaart } from '../_shared/eilandbezorgerPrijsFixtures.ts';
 type Rij = Record<string, any>;
 type Handler = (req: Request) => Promise<Response>;
 let captured: Handler | undefined;
@@ -33,6 +34,7 @@ async function lokaal(run: (s: { t: Record<string, Rij[]>; kassa: Rij[]; post: (
   const kassa: Rij[] = []; let mode = '', na: (() => void) | undefined;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const u = new URL(String(input)), method = init?.method ?? 'GET';
+    const kaart = mockKaart(input, init); if (kaart) return kaart;
     if (u.hostname === 'lightspeedapis.com') {
       if (method !== 'POST' || !['/resto/rest/onlineordering/customer/901/order', '/resto/rest/onlineordering/customer/13597022/order'].includes(u.pathname)) throw new Error('Verboden klant-/kassaverzoek');
       kassa.push(JSON.parse(String(init?.body)));
@@ -81,7 +83,7 @@ Deno.test('vaste owner-proef: volledige Pura-weg, €4,90, één product en best
   assertEquals(kassa.length, 1); const b = kassa[0];
   assertEquals(b.externalReference, 'PV-PROEF-MID-20261122-GB01');
   assertEquals(b.description, 'PV-PROEF-MID-20261122-GB01 — Pura Test'); assertEquals(b.note, 'TEST – niet klaarmaken');
-  assertEquals(b.orderItems, [{ productId: 4636894, amount: 1, unitPrice: 4.9, totalPrice: 4.9, modifiers: [], subitems: [] }]);
+  assertEquals(b.orderItems, [{ productId: 4636894, amount: 1, unitPrice: 4.9, totalPrice: 4.9, unitPriceWithoutVat: 4.4954, totalPriceWithoutVat: 4.5, modifiers: [], subitems: [] }]);
   assertEquals(b.orderPayments, [{ amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
   assertEquals(b.deliveryDate, '2026-11-22T15:27:00.000Z'); assertEquals(b.status, 'ACCEPTED');
   assertEquals(t.fase2_vlag[0].aan, false); assertEquals(t.externe_bestelling_poging[0].id, PROEF_POGING_ID);
@@ -239,4 +241,15 @@ Deno.test('GB02 met verloren antwoord wordt nooit herhaald', async () => lokaal(
   assertEquals((await (await post(gb02)).json()).status, 'uitkomst_onbekend');
   assertEquals((await post(gb02)).status, 409);
   assertEquals(kassa.length, 1);
+}));
+
+Deno.test('btw-diagnose door shared writer is owner-only en maakt geen bestelling/poging', async () => lokaal(async({post,t,kassa})=>{
+  const b={actie:'kaart',bron:'product',prijscontrole:true};
+  assertEquals((await post(b,false)).status,401);
+  t.user_roles[0].role='manager';assertEquals((await post(b)).status,403);
+  t.user_roles[0].role='owner';const r=await post(b);assertEquals(r.status,200);
+  assertEquals(r.headers.get('X-Pura-Kassa-Schema'),'bezorg-netto-v1');
+  const j=await r.json();assertEquals(j.alleen_lezen,true);assertEquals(j.orderItems[0].unitPriceWithoutVat,4.4954);assertEquals(j.orderItems[0].totalPriceWithoutVat,4.5);
+  assertEquals(j.orderPayments,[{amount:4.9,paymentTypeId:285794,paymentTypeTypeId:4,tip:0}]);
+  assertEquals(kassa.length,0);assertEquals(t.externe_bestellingen.length,0);assertEquals(t.externe_bestelling_poging.length,0);assertEquals(t.fase2_vlag[0].aan,false);
 }));

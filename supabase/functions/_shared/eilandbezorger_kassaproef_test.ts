@@ -1,5 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@1';
 import { betaaldInBericht, controleer, formaatSleutel, orderbericht, orderPad, type Bestelling, type Koppeling } from './eilandbezorgerLogica.ts';
+import { testPrijsRegels } from './eilandbezorgerPrijsFixtures.ts';
 
 const basis = (regels: Bestelling['regels'], restaurant_cent: number): Bestelling => ({
   versie: 1, modus: 'test', bestelnummer: 'LOKAAL-1', vestiging: '36864', ophaaltijd: '2026-11-22T17:00:00+01:00',
@@ -19,7 +20,7 @@ const bowl = (code: string, prijs: number, keuze: string, toeslag: number, aanta
 Deno.test('friet 3x: €21 restaurant en precies €21 vooraf betaald, route met klant', () => {
   const c = controleer(basis([{ code: 'PV-FFA8275F', aantal: 3, stukprijs_cent: 700 }], 2100), [friet]);
   if (!c.ok) throw new Error(c.reden);
-  const m = orderbericht({ referentie: 'EB-T-1', ophaaltijd: '2026-11-22T17:00:00+01:00', klant: { naam: 'Test' }, regels: c.regels, restaurant_cent: 2100, betaalwijzeId: '1', betaalwijzeTypeId: '2', klantId: '9' });
+  const m = orderbericht({ referentie: 'EB-T-1', ophaaltijd: '2026-11-22T17:00:00+01:00', klant: { naam: 'Test' }, regels: testPrijsRegels(c.regels), restaurant_cent: 2100, betaalwijzeId: '1', betaalwijzeTypeId: '2', klantId: '9' });
   assertEquals(betaaldInBericht(m), 2100);
   assertEquals(m.orderItems.reduce((s, r) => s + Math.round(r.totalPrice * 100), 0), 2100);
   assertEquals(m.status, 'ACCEPTED');
