@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] FR01 uitsluitend voorbereiden met GB07-beveiligingen en lokale tests; wacht op akkoord op minimale veilige uitrol van beheer én partnerontvangst. DE01 gestopt bij twijfel over delivery zonder adres/dispatch; geen proeforders of pogingen aanmaken.
 - [x] GB07 uitsluitend voorbereid: vaste owner-only actie met permanente order/poging en GB06-beveiligingen toegevoegd; 332 netwerkloze tests en beide Deno-checks geslaagd; alleen beheer/bestelling uitgerold, actieve GB07-validatie HTTP 400 bij bevestiging=false bevestigd; nul GB07-orders/pogingen en live uit teruggelezen, geen Lightspeed-order-POST of instellingenwijziging. Uitvoering wacht op betaalinstellingcontrole en afzonderlijke opdracht; bestaande datumgrens blijft 22 november 2026 Amsterdam.
 - [x] GB06: vooraf geen order/poging en live uit; vaste proef toegevoegd, 306 lokale tests en beide functiechecks geslaagd, uitsluitend beheer/bestelling uitgerold; als Yorick eenmaal HTTP 201 om 22:04:38 Amsterdam, order 19946163, één poging; UI toont In kassa, bonnummer niet beschikbaar, reguliere live uit.
 - [x] GB05: vaste proef toegevoegd; 269 lokale tests en beide functiechecks geslaagd; alleen twee getroffen functies uitgerold; via Yoricks preview eenmaal geaccepteerd om 18:55:43 Amsterdam, HTTP 201, Lightspeed-order 19944975, één poging, reguliere live uit; fysieke afdruk niet bevestigd.
@@ -11,4 +12,4 @@
 - [x] GB01 en GB02: elk eenmaal uitgevoerd en definitief geweigerd (HTTP 400), pogingen behouden; geen herverzending of volgende fysieke proef vrijgegeven.
 - [x] Midsland-betaalwijze Eilandbezorger: gerichte GET bevestigd (HTTP 200); ID 285794 en typeId 4 opgeslagen en teruggelezen; live uit
 - [x] Eilandbezorger: vaste Midsland-klant, gastnaam per order, contactgegevens weglaten, historische duplicaten behouden, lokale tests en instructie
-- [ ] Begeleide kassaproef friet — wacht op afzonderlijk uitvoerakkoord en apparaatcontrole voor accepteren/voltooien; betaalwijze gekoppeld
+- [ ] Begeleide kassaproef friet uitvoeren — afzonderlijke voorbereiding gevraagd; daadwerkelijke uitvoering wacht op nieuwe uitvoeropdracht en beveiligde eigenaarsaanmelding.
