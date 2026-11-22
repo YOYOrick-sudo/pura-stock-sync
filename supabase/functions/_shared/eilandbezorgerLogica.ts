@@ -149,9 +149,6 @@ export async function zelfdeBestelling(r: any, b: Bestelling, vinger: string): P
   return oud.success && await vingerafdruk(oud.data) === vinger;
 }
 
-/** Besluit Yorick 21-11-2026: eerste kassaproef met orderPayments als object, zoals in het officiële POST-voorbeeld.
- * Nooit automatisch een tweede order met een ander formaat proberen. */
-export const BETALINGEN_ALS_LIJST = false;
 export const centen = (euro: number) => Math.round(euro * 100);
 
 /** Vaste klant; orderspecifieke gastnaam en bestelnummer in description, opmerking exact in note. */
@@ -174,7 +171,7 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
       modifiers: r.extras.map((e) => ({ productId: Number(e.lightspeed_product_id), amount: e.aantal, unitPrice: e.stukprijs_cent / 100 })),
       subitems: [],
     })),
-    orderPayments: betaling ? (BETALINGEN_ALS_LIJST ? [betaling] : betaling) : undefined,
+    orderPayments: betaling ? [betaling] : undefined,
   };
 }
 
@@ -185,7 +182,7 @@ export function orderPad(route: string | null | undefined, klantId: string | nul
 }
 
 /** Totaal betaald in het bericht moet exact het restaurantbedrag zijn. */
-export function betaaldInBericht(bericht: ReturnType<typeof orderbericht>): number {
+export function betaaldInBericht(bericht: { orderPayments?: { amount: number } | { amount: number }[] | null }): number {
   const b = bericht.orderPayments; const lijst = Array.isArray(b) ? b : b ? [b] : [];
   return lijst.reduce((s, x) => s + centen(x.amount), 0);
 }

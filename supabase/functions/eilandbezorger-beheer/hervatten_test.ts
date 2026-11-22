@@ -81,7 +81,8 @@ Deno.test('twee parallelle jsonb-hervattingen: één POST, dezelfde rij/invoer, 
   assertEquals(calls.length,1);assertEquals(t.externe_bestellingen.length,1);assertEquals(t.externe_bestellingen[0].id,PROEF_ORDER_ID);
   assertEquals(gelijkJson(t.externe_bestellingen[0].invoer,origineel.invoer),true);assertEquals(t.externe_bestellingen[0].ophaaltijd,origineel.ophaaltijd);
   assertEquals(t.externe_bestellingen[0].status,'verzonden');assertEquals(t.externe_bestelling_poging.length,1);assertEquals(t.externe_bestelling_poging[0].id,PROEF_POGING_ID);
-  assertEquals(calls[0].orderItems[0].productId,4636894);assertEquals(calls[0].orderItems[0].amount,1);assertEquals(calls[0].orderPayments.amount,4.9);
+  assertEquals(calls[0].orderItems[0].productId,4636894);assertEquals(calls[0].orderItems[0].amount,1);
+  assertEquals(calls[0].orderPayments, [{ amount: 4.9, paymentTypeId: 285794, paymentTypeTypeId: 4, tip: 0 }]);
   assertEquals(calls[0].description,'PV-PROEF-MID-20261122-GB01 — Pura Test');assertEquals(calls[0].note,'TEST – niet klaarmaken');assertEquals(t.fase2_vlag[0].aan,false);
 }));
 const changes:[string,(t:Record<string,Rij[]>)=>void][]=[
