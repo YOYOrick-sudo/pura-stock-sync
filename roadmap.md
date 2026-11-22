@@ -1,4 +1,5 @@
 # Roadmap
+- [x] GB05: vaste proef toegevoegd; 269 lokale tests en beide functiechecks geslaagd; alleen twee getroffen functies uitgerold; via Yoricks preview eenmaal geaccepteerd om 18:55:43 Amsterdam, HTTP 201, Lightspeed-order 19944975, één poging, reguliere live uit; fysieke afdruk niet bevestigd.
 - [x] GB04 uitsluitend voorbereid: vaste owner-only actie met permanente order/poging, bestaande btw/schrijver hergebruikt; 254 lokale tests en beide Deno-checks geslaagd; alleen eilandbezorger-beheer/bestelling uitgerold, actieve GB04-validatie bevestigd zonder uitvoering; geen GB04-order/poging, GB01–GB03 en live-uit ongewijzigd.
 - [x] GB03: vaste owner-only proef met eigen permanente order/poging toegevoegd; 228 lokale tests geslaagd; alleen beide betrokken functies uitgerold en GB03-validatie actief gecontroleerd; GB01/GB02 behouden en live uit.
 - [x] GB03 eenmaal uitgevoerd: status verzonden, Lightspeed-order 19944303, één HTTP 201-poging; bon/betaalsaldo niet bevestigd wegens HTTP 401 bij uitsluitend lezend onderzoek, geen herverzending.
