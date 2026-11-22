@@ -223,3 +223,20 @@ Beide functies geven `X-Pura-Kassa-Schema: bezorg-netto-v1` in hun antwoord, ook
 Actief gecontroleerd op 22 november 2026, 17:39–17:40 Amsterdam: beide OPTIONS-antwoorden HTTP 200 met schema `bezorg-netto-v1`. De eigenaar-diagnose antwoordde HTTP 200 met bovenstaand Ginger Beer-voorbeeld en de echte taxclass-respons `{"id":"BUILTIN-9.0","description":"Tax rate 9.0","taxRate":9}`. Er is geen order-POST uitgevoerd. De schemaheader is via een HTTP-client gelezen; de browser stelt die custom header niet beschikbaar zonder expose-header.
 
 Eindregressie: **204 lokale tests geslaagd, 0 fouten**, met onderschepte HTTP en zonder netwerkrechten. Beide functie-entrypoints slagen voor `deno check`. Inclusief volledige ontvangst→verzending voor Ginger Beer 1×/3×, planning en hercontrole, 0/9/21%-fixtures, nulprijs, netto-/tariefconflicten, formaten, echte gratis-modifierstructuur, blokkade van onzekere betaalde extra’s, cache/429, historische duplicaten en alle GB01/GB02-proefbeveiligingen. Geen live-rooktest of nieuwe echte testorder.
+
+
+## FR01 printproef — uitsluitend voorbereid
+
+Alleen de bestaande oorspronkelijke actieve eigenaar kan later, na een afzonderlijke uitvoeropdracht en reguliere geautoriseerde preview-aanmelding, deze vaste actie aanroepen op `eilandbezorger-beheer`:
+
+```json
+{"actie":"print_proef_fr01","referentie":"PV-PRINT-MID-20261122-FR01","bevestiging":true}
+```
+
+Vaste inhoud: Midsland 36864, 1× Zoete Aardappel Friet 4636994 / F-a12, €7,00, geen extra, type `takeaway`, klant 13597022, gastnaam `Pura Test`, Eilandbezorger 285794/type 4, extern vooruitbetaald zonder incasso. Description: `PV-PRINT-MID-20261122-FR01 — Pura Test`. Note: `TEST FR01 – NIET BEREIDEN`. Actuele netto-/btw-gegevens komen uitsluitend uit de bestaande gerichte cataloguscontrole; de testfixture is geen bewijs van actuele Lightspeed-prijzen.
+
+Permanente order-ID `d301660d-5bba-4aa2-8d97-7e0db78af101`; poging-ID `6c81d315-344b-487e-89d7-dc92d1a9f101`. Bij een bestaande rij of poging niet uitvoeren, ook niet na een fout of onbekende uitkomst. Geen herverzending of partnerontvangst voor deze referentie. Reguliere liveverzending moet expliciet uit staan; actuele tijden worden pas bij de latere actie vastgesteld, met de bestaande 45-minutencontrole en datumgrens 22 november 2026 Amsterdam. Na middernacht is deze proef verlopen, niet automatisch verlengd. Voorbereiding maakt geen bestelling of poging aan.
+
+### DE01 gestopt bij twijfel
+
+`PV-PRINT-MID-20261122-DE01` heeft nu **geen uitvoerbare actie**. De gedeelde writer en gewone bestelstroom houden `takeaway`. Zonder bevestigd L-Series schema en zekerheid dat `delivery` zonder adres/contactgegevens geen bezorg-/dispatchgedrag veroorzaakt, wordt geen DE01-capability of fysieke proef vrijgegeven. Geen koerier, Eilandbezorger-opdracht, klantcontact of instellingenwijziging.

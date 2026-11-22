@@ -44,7 +44,13 @@ export const ZEVENDE_PROEF = {
   pogingId: 'c2341312-8de0-461f-ac8a-8225fba0ab07',
   vrijgave: Symbol('owner-only-ginger-beer-gb07'),
 } as const;
-export type VasteProef = typeof EERSTE_PROEF | typeof TWEEDE_PROEF | typeof DERDE_PROEF | typeof VIERDE_PROEF | typeof VIJFDE_PROEF | typeof ZESDE_PROEF | typeof ZEVENDE_PROEF;
+export const FRIET_PROEF = {
+  referentie: 'PV-PRINT-MID-20261122-FR01',
+  orderId: 'd301660d-5bba-4aa2-8d97-7e0db78af101',
+  pogingId: '6c81d315-344b-487e-89d7-dc92d1a9f101',
+  vrijgave: Symbol('owner-only-print-fr01'),
+} as const;
+export type VasteProef = typeof EERSTE_PROEF | typeof TWEEDE_PROEF | typeof DERDE_PROEF | typeof VIERDE_PROEF | typeof VIJFDE_PROEF | typeof ZESDE_PROEF | typeof ZEVENDE_PROEF | typeof FRIET_PROEF;
 
 export const PROEF_HERVATTING = Symbol('eerste-ongezonden-proef-hervatten');
 export const PROEF_OWNER_ID = '9b59d031-86b2-45c1-882c-ab222c6bbf66';
@@ -53,15 +59,22 @@ export const PROEF_EERSTE_HASH = '66b58a21487145e5ab2045f71ac7f5ee4995e2df680504
 export const PROEF_BLOKKADE = 'Proefinhoud of vaste klantconfiguratie is gewijzigd.';
 export const PROEF_HERVAT_REDEN = 'Eenmalige hervatting van eerste ongezonden fysieke proef; gewone liveverzending blijft uit.';
 export function herkenProef(r: { extern_id?: string; referentie?: string; id?: string } | null | undefined) {
-  return [EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF].find(p => r?.extern_id === p.referentie || r?.referentie === p.referentie || r?.id === p.orderId);
+  return [EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF].find(p => r?.extern_id === p.referentie || r?.referentie === p.referentie || r?.id === p.orderId);
 }
 export const isProef = (r: any) => herkenProef(r) !== undefined;
 
+export function proefArtikel(proef: VasteProef) {
+  return proef === FRIET_PROEF
+    ? { code: 'PV-FFA8275F', naam: 'Zoete Aardappel Friet', id: '4636994', plu: 'F-a12', cent: 700, note: 'TEST FR01 – NIET BEREIDEN' }
+    : { code: 'PV-0680E844', naam: 'Naturfrisk Ginger beer', id: '4636894', plu: 'Kd-a11', cent: 490, note: 'TEST – niet klaarmaken' };
+}
+
 export function proefInvoer(nu: number, proef: VasteProef = EERSTE_PROEF) {
+  const a = proefArtikel(proef);
   return BestellingSchema.parse({ versie: 1, modus: 'live', bestelnummer: proef.referentie, vestiging: '36864',
-    ophaaltijd: new Date(nu).toISOString(), klant: { naam: 'Pura Test' }, opmerking: 'TEST – niet klaarmaken',
-    regels: [{ code: 'PV-0680E844', naam: 'Naturfrisk Ginger beer', aantal: 1, stukprijs_cent: 490, extras: [] }],
-    bedragen: { restaurant_cent: 490, bezorgkosten_cent: 0, fooi_cent: 0, korting: null }, betaling: { wijze: 'vooraf_betaald' } });
+    ophaaltijd: new Date(nu).toISOString(), klant: { naam: 'Pura Test' }, opmerking: a.note,
+    regels: [{ code: a.code, naam: a.naam, aantal: 1, stukprijs_cent: a.cent, extras: [] }],
+    bedragen: { restaurant_cent: a.cent, bezorgkosten_cent: 0, fooi_cent: 0, korting: null }, betaling: { wijze: 'vooraf_betaald' } });
 }
 
 export function proefDatum(nu: number) {
@@ -86,19 +99,20 @@ export async function proefControle(admin: any, nu: number, proef: VasteProef = 
   if (String(cfg.lightspeed_betaalwijze_id) !== '285794' || String(cfg.lightspeed_betaalwijze_type_id) !== '4') return { fout: 'De bevestigde betaalwijze Eilandbezorger 285794/type 4 ontbreekt.' };
   if (cfg.order_route !== 'customer_order' || !Number.isFinite(cfg.venster_minuten) || cfg.venster_minuten <= 0) return { fout: 'Proefroute of afhaalvenster ongeldig.' };
   if (!['gekoppeld', 'token_verlopen'].includes(conn.data?.status)) return { fout: 'Midsland heeft geen actieve kassakoppeling.' };
-  const mapping = (k.data ?? []).filter((x: any) => x.soort === 'product' && x.externe_code === 'PV-0680E844' && x.actief);
-  if (mapping.length !== 1 || mapping[0].lightspeed_product_id !== '4636894' || mapping[0].prijs_cent !== 490) return { fout: 'De actieve Ginger Beer-koppeling moet exact 4636894 en 490 cent zijn.' };
+  const a = proefArtikel(proef);
+  const mapping = (k.data ?? []).filter((x: any) => x.soort === 'product' && x.externe_code === a.code && x.actief);
+  if (mapping.length !== 1 || mapping[0].lightspeed_product_id !== a.id || mapping[0].prijs_cent !== a.cent) return { fout: `De actieve ${a.naam}-koppeling moet exact ${a.id} en ${a.cent} cent zijn.` };
   const b = proefInvoer(nu, proef), controle = controleer(b, k.data ?? []);
   if (!controle.ok) return { fout: controle.reden };
   const r = controle.regels[0];
-  if (controle.regels.length !== 1 || r.lightspeed_product_id !== '4636894' || r.stukprijs_cent !== 490 || r.naam !== 'Naturfrisk Ginger beer' || r.extras.length) return { fout: 'De actieve Ginger Beer-koppeling moet exact 4636894 en 490 cent zijn.' };
-  if (proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF) {
+  if (controle.regels.length !== 1 || r.lightspeed_product_id !== a.id || r.stukprijs_cent !== a.cent || r.naam !== a.naam || r.extras.length) return { fout: `De actieve ${a.naam}-koppeling moet exact ${a.id} en ${a.cent} cent zijn.` };
+  if (proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF || proef === FRIET_PROEF) {
     if (cfg.merchant_id !== '36864' || cfg.lightspeed_klant_id !== '13597022' ||
-      cfg.lightspeed_company_id !== null || cfg.venster_minuten !== 45 || r.lightspeed_plu !== 'Kd-a11') {
+      cfg.lightspeed_company_id !== null || cfg.venster_minuten !== 45 || r.lightspeed_plu !== a.plu) {
       return { fout: 'De bevestigde Midsland-configuratie voor de vaste vervolgproef is gewijzigd.' };
     }
     if (!await eersteProefGeweigerd(admin)) return { fout: 'De oorspronkelijke eenmalige parserweigering is niet bevestigd.' };
-    if ((proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF) && !await tweedeProefGeweigerd(admin)) return { fout: 'De eenmalige GB02-nettoprijsweigering is niet bevestigd.' };
+    if ((proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF || proef === FRIET_PROEF) && !await tweedeProefGeweigerd(admin)) return { fout: 'De eenmalige GB02-nettoprijsweigering is niet bevestigd.' };
   }
   return { cfg, b, regels: controle.regels };
 }
@@ -107,7 +121,7 @@ export function exacteProef(rij: any, nu: number, cfg: any, regels: unknown, pro
   const p = BestellingSchema.safeParse(rij.invoer);
   if (!p.success || rij.id !== proef.orderId || rij.referentie !== proef.referentie || rij.extern_id !== proef.referentie ||
     rij.merchant_id !== '36864' || rij.vestiging !== 'Midsland' || rij.modus !== 'live' || !rij.vrijgegeven_door ||
-    rij.restaurant_cent !== 490 || rij.bezorgkosten_cent !== 0 || rij.fooi_cent !== 0 || rij.korting !== null) return false;
+    rij.restaurant_cent !== proefArtikel(proef).cent || rij.bezorgkosten_cent !== 0 || rij.fooi_cent !== 0 || rij.korting !== null) return false;
   const tijd = Date.parse(rij.ophaaltijd);
   if (!Number.isFinite(tijd) || tijd > nu || nu - tijd > cfg.venster_minuten * 60_000) return false;
   return gelijkJson(rij.invoer, proefInvoer(tijd, proef)) && gelijkJson(p.data, proefInvoer(tijd, proef)) && gelijkJson(rij.regels, regels);

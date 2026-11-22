@@ -88,7 +88,7 @@ describe('voorraad ophalen', () => {
     useVoorraadproef('West');
     const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0];
     if (!options?.onSuccess) throw new Error('Opslaan-callback ontbreekt');
-    await options.onSuccess(undefined, undefined, undefined);
+    await Reflect.apply(options.onSuccess, undefined, [undefined, undefined, undefined, { client: new QueryClient(), meta: undefined, mutationKey: undefined }]);
     expect(mocks.invalidateQueries.mock.calls).toEqual([
       [{ queryKey: ['voorraadproef', 'West'] }], [{ queryKey: ['voorraadproef-open', 'West'] }],
     ]);

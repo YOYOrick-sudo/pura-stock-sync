@@ -2,7 +2,7 @@ import { geldigToken } from './lightspeedToken.ts';
 import { BestellingSchema, gelijkJson, vingerafdruk, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 import { vasteKlantId } from './eilandbezorgerKlant.ts';
 import { actuelePrijsRegels } from './eilandbezorgerPrijzen.ts';
-import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, eersteProef, exacteProef, herkenProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_OWNER_ID } from './eilandbezorgerProef.ts';
+import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, eersteProef, exacteProef, herkenProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_OWNER_ID } from './eilandbezorgerProef.ts';
 
 export const API = 'https://lightspeedapis.com/resto';
 
@@ -46,7 +46,7 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave
     if (hervatting && (!eersteProef(actueel.data, c.cfg, c.regels, Date.now()) || actueel.data.lightspeed_order_id !== null ||
       (uitgaand === undefined ? actueel.data.orderbericht !== null || actueel.data.lightspeed_klant_id !== null :
         !gelijkJson(actueel.data.orderbericht, uitgaand) || actueel.data.lightspeed_klant_id !== '13597022'))) return 'Verzendspoor of gewijzigde eerste proef; geen verzending.';
-    if (proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF) {
+    if (proef === TWEEDE_PROEF || proef === DERDE_PROEF || proef === VIERDE_PROEF || proef === VIJFDE_PROEF || proef === ZESDE_PROEF || proef === ZEVENDE_PROEF || proef === FRIET_PROEF) {
       const nu = actueel.data;
       if (cfg.lightspeed_betaalwijze_id !== c.cfg.lightspeed_betaalwijze_id || cfg.lightspeed_betaalwijze_type_id !== c.cfg.lightspeed_betaalwijze_type_id ||
         cfg.order_route !== c.cfg.order_route || cfg.lightspeed_company_id !== c.cfg.lightspeed_company_id ||
