@@ -1,6 +1,9 @@
 # Hula Vegan — gerichte correctie en ontvangstbewijs
 
-## Wijziging
+## Actuele correctie — 23 november 2026 18:37 UTC
+Hula is volgens de nieuwste eigenaarcorrectie niet standaard vegan. De eerdere goedkeuring hieronder is ingetrokken: nieuwe Hula-aanleveringen met Vegan worden afgekeurd, ook via gekoppelde Vegan-aliassen. Gewone Klein/Groot en onafhankelijk geldige andere keuzes blijven behouden. De code en regressies zijn aangepast; uitrol en nieuwe normale POST/GET-ontvangstcontrole staan nog open. De onderstaande resultaten blijven uitsluitend historische resultaten, geen actuele toestemming.
+
+## Historische wijziging
 Gedeelde `controleer` accepteert uitsluitend het gratis informatieve Vegan-vinkje PVK-319766B2-1 bij PV-F7B26912, Midsland 36864, met expliciet Klein PVK-241B2733-1 / Dh16 / 1071103 (1650 + 0 cent) of Groot PVK-241B2733-2 / B140 / 2385828 (1650 + 850 cent). Definitieve koppeling en prijs moeten exact overeenkomen; keuzeaantal is 1 en keuzeprijs 0.
 
 De aangeleverde keuze blijft in `invoer` en de vingerafdruk; de genormaliseerde Hula-regel bevat geen Vegan-extra. Glutenvrij blijft een echte optie. Het gedrag zonder Vegan is ongewijzigd. Geen mappings, schema, rollen, menu's, livevlag of printers gewijzigd.

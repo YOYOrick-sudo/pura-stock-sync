@@ -100,6 +100,12 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
   const regels: Regel[] = []; let som = 0;
   for (const r of b.regels) {
     if (new Set((r.extras ?? []).map(e => e.code)).size !== (r.extras ?? []).length) return { ok: false, reden: `Dubbele extra of keuze voor ${r.code}` };
+    // Nieuwste eigenaarcorrectie: Hula heeft geen bevestigde vegan variant, ook niet via een alias.
+    if (r.code === 'PV-F7B26912' && (r.extras ?? []).some(e =>
+      e.code === 'PVK-319766B2-1' || e.code === 'PVK-AD715B1F-1' ||
+      koppelingen.some(x => x.soort !== 'product' && x.externe_code.startsWith(r.code + '|') &&
+        x.externe_code.endsWith('|' + e.code) && (x.lightspeed_product_id === '1307820' || /\bvegan(?:istisch)?\b/i.test(x.naam)))
+    )) return { ok: false, reden: 'Hula is niet standaard vegan; er is geen door de eigenaar bevestigde vegan variant. Vegan-keuzes zijn niet toegestaan bij Klein of Groot.' };
     // Formaat: gerecht + keuze wordt precies 1x het afzonderlijke kassaproduct; toeslag niet nogmaals optellen.
     const formaten = (r.extras ?? []).map((e) => ({ e, f: k('formaat', formaatSleutel(r.code, e.code)) })).filter((x) => x.f);
     const gerechtHeeftFormaten = koppelingen.some((x) => x.soort === 'formaat' && x.keuze_verplicht !== false && x.externe_code.startsWith(r.code + '|'));
@@ -117,16 +123,6 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
     const extras: Regel['extras'] = [];
     let gastVerzoek: Regel['gast_verzoek'];
     for (const e of rest) {
-      // Hula is standaard vegan: bewaar de bronkeuze, maar maak geen kassamodifier.
-      if (r.code === 'PV-F7B26912' && e.code === 'PVK-319766B2-1') {
-        const formaat = formaten[0];
-        const klein = formaat?.e.code === 'PVK-241B2733-1' && basis.lightspeed_product_id === '1071103' && basis.lightspeed_plu === 'Dh16' && stuk === 1650 && formaat.e.stukprijs_cent === 0;
-        const groot = formaat?.e.code === 'PVK-241B2733-2' && basis.lightspeed_product_id === '2385828' && basis.lightspeed_plu === 'B140' && stuk === 2500 && formaat.e.stukprijs_cent === 850;
-        if (b.vestiging !== '36864' || e.aantal !== 1 || e.stukprijs_cent !== 0 || r.stukprijs_cent !== 1650 || basis.prijs_cent !== stuk || formaat?.f?.keuze_verplicht === false || (!klein && !groot)) {
-          return { ok: false, reden: 'Hula Vegan vereist de bevestigde Klein/Groot-koppeling, exacte maatprijs en één gratis keuze.' };
-        }
-        continue;
-      }
       const standaardVegan = e.code === 'PVK-AD715B1F-1' && (r.code === 'PV-6F37A149' || r.code === 'PV-3AC166C3');
       const bloemkoolGlutenvrij = r.code === 'PV-3AC166C3' && e.code === 'PVK-AD715B1F-2';
       if (standaardVegan || bloemkoolGlutenvrij) {

@@ -19,62 +19,50 @@ const bestelling = (maat = maten[0], opties = [optie(vegan)], aantal = 1): Beste
   bedragen: { restaurant_cent: aantal * (maat.prijs + opties.reduce((s, e) => s + e.aantal * e.stukprijs_cent, 0)), bezorgkosten_cent: 0, fooi_cent: 0, korting: null },
   betaling: { wijze: 'vooraf_betaald' },
 });
+const afkeur = { ok: false, reden: 'Hula is niet standaard vegan; er is geen door de eigenaar bevestigde vegan variant. Vegan-keuzes zijn niet toegestaan bij Klein of Groot.' };
 for (const m of maten) {
-  for (const aantal of [1, 2]) Deno.test(`Hula ${m.plu} ${aantal}x Vegan bevestiging: vaste ID, prijs en geen modifier`, () => {
-    const b = bestelling(m, [optie(vegan)], aantal), bron = structuredClone(b);
+  for (const aantal of [1, 2]) Deno.test(`Hula ${m.plu} ${aantal}x zonder Vegan behoudt product en totaal`, () => {
+    const b = bestelling(m, [], aantal), bron = structuredClone(b);
     const c = controleer(b, mappings); if (!c.ok) throw new Error(c.reden);
     assertEquals(c.regels.map(r => [r.lightspeed_product_id, r.lightspeed_plu, r.aantal, r.stukprijs_cent, r.extras]), [[m.id, m.plu, aantal, m.prijs, []]]);
     assertEquals(c.regels[0].aantal * c.regels[0].stukprijs_cent, aantal * m.prijs);
     assertEquals(b, bron);
-    assertEquals(b.regels[0].extras?.filter(e => e.code === vegan), [optie(vegan)]);
-    const geprijsd = prijsRegels(c.regels, [fictiefProduct(Number(m.id), m.prijs / 100)], TEST_KLASSEN);
-    assertEquals(geprijsd[0].kassa_modifiers, []);
+    assertEquals(prijsRegels(c.regels, [fictiefProduct(Number(m.id), m.prijs / 100)], TEST_KLASSEN)[0].kassa_modifiers, []);
   });
-  Deno.test(`Hula ${m.plu} zonder Vegan blijft identiek`, () => {
-    assertEquals(controleer(bestelling(m, []), mappings), controleer(bestelling(m), mappings));
+  Deno.test(`Hula ${m.plu} Vegan afgekeurd met reden en rauwe keuze intact`, () => {
+    const b = bestelling(m), bron = structuredClone(b);
+    assertEquals(controleer(b, mappings), afkeur); assertEquals(b, bron);
   });
-  Deno.test(`Hula ${m.plu} Vegan verwijdert nooit echte Glutenvrij modifier`, () => {
-    const b = bestelling(m, [optie(vegan), optie(gluten)]), bron = structuredClone(b);
-    const c = controleer(b, mappings); if (!c.ok) throw new Error(c.reden);
+  for (const opts of [[optie(vegan, 2)], [optie(vegan, 1, 100)], [optie(vegan), optie(gluten)]]) {
+    Deno.test(`Hula ${m.plu} Vegan blijft afkeur bij ${JSON.stringify(opts)}`, () => assertEquals(controleer(bestelling(m, opts), mappings), afkeur));
+  }
+  for (const alias of ['PVK-AD715B1F-1', 'VEGAN-ALIAS']) {
+    for (const actief of [false, true]) for (const productScope of [false, true]) {
+      Deno.test(`Hula ${m.plu} weigert Vegan-alias ${alias}, actief=${actief}, productScope=${productScope}`, () => {
+        const kop: Koppeling = { soort: 'extra', externe_code: `${hula}|${productScope ? m.id + '|' : ''}${alias}`, lightspeed_product_id: '1307820', naam: 'Bereidingskeuze', prijs_cent: 0, actief };
+        assertEquals(controleer(bestelling(m, [optie(alias)]), [...mappings, kop]), afkeur);
+      });
+    }
+  }
+  Deno.test(`Hula ${m.plu} weigert Vegan-alias via naam en andere modifier-ID`, () => {
+    const kop: Koppeling = { soort: 'extra', externe_code: `${hula}|${m.id}|ALIAS`, lightspeed_product_id: '999', naam: 'Veganistisch', prijs_cent: 0, actief: true };
+    assertEquals(controleer(bestelling(m, [optie('ALIAS')]), [...mappings, kop]), afkeur);
+  });
+  Deno.test(`Hula ${m.plu} onbekende optie blijft afkeur`, () => assertEquals(controleer(bestelling(m, [optie('ONBEKEND')]), mappings).ok, false));
+  Deno.test(`Hula ${m.plu} onafhankelijk Glutenvrij behoudt echte modifier`, () => {
+    const c = controleer(bestelling(m, [optie(gluten)]), mappings); if (!c.ok) throw new Error(c.reden);
     assertEquals(c.regels[0].extras, [{ lightspeed_product_id: '263905', naam: 'Glutenvrij', aantal: 1, stukprijs_cent: 0 }]);
-    assertEquals(b, bron);
     const p = { ...fictiefProduct(Number(m.id), m.prijs / 100), additions: [{ id: 263904, name: 'Lokale testgroep', values: [{ id: 263905, name: 'Glutenvrij', price: 0, priceWithoutVAT: 0 }] }] };
-    const priced = prijsRegels(c.regels, [p], TEST_KLASSEN);
-    assertEquals(priced[0].kassa_modifiers.map(v => [v.modifierValueId, v.price]), [[263905, 0]]);
-  });
-  for (const field of ['lightspeed_product_id', 'lightspeed_plu', 'prijs_cent', 'keuze_verplicht'] as const) Deno.test(`Hula Vegan weigert gewijzigde ${field} bij ${m.plu}`, () => {
-    const fout = mappings.map(k => k.soort === 'formaat' && k.lightspeed_product_id === m.id ? { ...k, [field]: field === 'prijs_cent' ? m.prijs + 1 : field === 'keuze_verplicht' ? false : 'ONJUIST' } : k);
-    assertEquals(controleer(bestelling(m), fout).ok, false);
-  });
-  Deno.test(`Hula Vegan weigert inactive formaat ${m.plu}`, () => {
-    assertEquals(controleer(bestelling(m), mappings.map(k => k.soort === 'formaat' && k.lightspeed_product_id === m.id ? { ...k, actief: false } : k)).ok, false);
-  });
-  Deno.test(`Hula Vegan weigert één cent afwijkende basisprijs ${m.plu}`, () => {
-    const b = bestelling(m); b.regels[0].stukprijs_cent += 1; b.bedragen.restaurant_cent += 1;
-    assertEquals(controleer(b, mappings).ok, false);
+    assertEquals(prijsRegels(c.regels, [p], TEST_KLASSEN)[0].kassa_modifiers.map(v => [v.modifierValueId, v.price]), [[263905, 0]]);
   });
 }
-Deno.test('Hula Vegan dubbele keuze blokkeert', () => assertEquals(controleer(bestelling(maten[0], [optie(vegan), optie(vegan)]), mappings), { ok: false, reden: `Dubbele extra of keuze voor ${hula}` }));
-Deno.test('Hula Vegan aantal 2 per product blokkeert', () => assertEquals(controleer(bestelling(maten[0], [optie(vegan, 2)]), mappings).ok, false));
-Deno.test('Hula Vegan één cent toeslag blokkeert', () => assertEquals(controleer(bestelling(maten[0], [optie(vegan, 1, 1)]), mappings).ok, false));
-Deno.test('Hula Vegan zonder formaat blokkeert, ook met solomapping', () => {
-  const b = bestelling(); b.regels[0].extras = [optie(vegan)];
-  const solo: Koppeling = { soort: 'product', externe_code: hula, lightspeed_product_id: '1071103', lightspeed_plu: 'Dh16', naam: 'Hula', prijs_cent: 1650, actief: true };
-  assertEquals(controleer(b, [...mappings, solo]).ok, false);
-  assertEquals(controleer(b, [solo]).ok, false);
-});
-Deno.test('Hula Vegan verkeerd formaat blokkeert', () => {
-  const b = bestelling(); b.regels[0].extras = [optie('PVK-77BFC4AF-1'), optie(vegan)];
+Deno.test('Hula dubbele Vegan-keuze blijft afkeur', () => assertEquals(controleer(bestelling(maten[0], [optie(vegan), optie(vegan)]), mappings).ok, false));
+Deno.test('Hula zonder maat blijft afkeur', () => {
+  const b = bestelling(maten[0], []); b.regels[0].extras = [];
   assertEquals(controleer(b, mappings).ok, false);
 });
-Deno.test('Hula Vegan twee formaten blokkeert', () => assertEquals(controleer(bestelling(maten[0], [optie(maten[1].code, 1, 850), optie(vegan)]), mappings).ok, false));
-Deno.test('Hula Vegan basis 16,49 en maat 8,51 mogen niet wegvallen tot 25', () => {
-  const b = bestelling(maten[1]); b.regels[0].stukprijs_cent = 1649;
-  const formaat = b.regels[0].extras?.[0]; if (!formaat) throw new Error('Fixture ontbreekt'); formaat.stukprijs_cent = 851;
-  assertEquals(controleer(b, mappings).ok, false);
-});
-Deno.test('Hula Vegan restaurantbedrag blijft exact gecontroleerd', () => {
-  const b = bestelling(maten[1]); b.bedragen.restaurant_cent = 2501;
+Deno.test('Hula restaurantbedrag blijft exact gecontroleerd zonder Vegan', () => {
+  const b = bestelling(maten[1], []); b.bedragen.restaurant_cent = 2501;
   assertEquals(controleer(b, mappings), { ok: false, reden: 'Restaurantbedrag klopt niet: regels 2500, opgegeven 2501' });
 });
 Deno.test('Sashimi Vegan blijft ongeoorloofd', () => {
