@@ -1,0 +1,3 @@
+ALTER TABLE public.externe_product_koppeling ADD COLUMN keuze_verplicht boolean NOT NULL DEFAULT true;
+ALTER TABLE public.externe_product_koppeling ADD CONSTRAINT externe_product_koppeling_optional_formaat CHECK (keuze_verplicht OR soort = 'formaat');
+COMMENT ON COLUMN public.externe_product_koppeling.keuze_verplicht IS 'Bestaande formaten verplicht; false maakt een gerechtgebonden formaat een optionele compleet-productvariant. Geen wijziging aan product of extra mappings.';

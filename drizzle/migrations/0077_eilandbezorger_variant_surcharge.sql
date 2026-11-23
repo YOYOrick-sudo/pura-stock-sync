@@ -1,0 +1,3 @@
+ALTER TABLE public.externe_product_koppeling ADD COLUMN keuze_toeslag_cent integer;
+ALTER TABLE public.externe_product_koppeling ADD CONSTRAINT externe_product_koppeling_variant_toeslag CHECK ((keuze_toeslag_cent IS NULL OR keuze_toeslag_cent >= 0) AND (keuze_verplicht OR keuze_toeslag_cent IS NOT NULL));
+COMMENT ON COLUMN public.externe_product_koppeling.keuze_toeslag_cent IS 'Exacte toeslag per optionele keuze per besteld product, niet nogmaals als modifier boeken.';

@@ -2002,6 +2002,8 @@ export type Database = {
           created_at: string
           externe_code: string
           id: string
+          keuze_toeslag_cent: number | null
+          keuze_verplicht: boolean
           lightspeed_plu: string | null
           lightspeed_product_id: string
           naam: string
@@ -2014,6 +2016,8 @@ export type Database = {
           created_at?: string
           externe_code: string
           id?: string
+          keuze_toeslag_cent?: number | null
+          keuze_verplicht?: boolean
           lightspeed_plu?: string | null
           lightspeed_product_id: string
           naam: string
@@ -2026,6 +2030,8 @@ export type Database = {
           created_at?: string
           externe_code?: string
           id?: string
+          keuze_toeslag_cent?: number | null
+          keuze_verplicht?: boolean
           lightspeed_plu?: string | null
           lightspeed_product_id?: string
           naam?: string

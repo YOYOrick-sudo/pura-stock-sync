@@ -82,6 +82,12 @@ Deno.serve(async (req) => {
 
     const regels = c.ok ? c.regels : null;
     let kassabericht = null;
+    // Een reguliere optie is pas test_ok als de echte optie bij het definitieve product hoort.
+    // Alleen gerichte catalogus-GETs; testmodus maakt nooit een kassabericht of verzendpoging.
+    if (regels && modus === 'test' && status === 'test_ok' && regels.some(r => r.extras.length > 0)) {
+      const prijzen = await actuelePrijsRegels(admin, vestiging, regels);
+      if ('fout' in prijzen) { status = 'afgekeurd'; reden = prijzen.fout; }
+    }
     // Testmodus en live-uit vragen nooit Lightspeed om prijzen. Incomplete berichten blijven null.
     if (regels && modus === 'live' && ['gepland', 'verzenden'].includes(status)) {
       const prijzen = await actuelePrijsRegels(admin, vestiging, regels);

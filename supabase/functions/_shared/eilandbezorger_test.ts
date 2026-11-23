@@ -50,8 +50,10 @@ const kop = [
 ] as any;
 const parse = (x: unknown) => BestellingSchema.parse(x);
 
-Deno.test('geldige bestelling: bedragen inclusief extras kloppen', () => {
-  const r = controleer(parse(basis), kop); assertEquals(r.ok, true);
+Deno.test('onbewezen betaalde modifier blijft dicht bij de ontvangstcontrole', () => {
+  const r = controleer(parse(basis), [{ ...kop[0] }, { ...kop[1], externe_code: 'FRIET|MAYO' }]);
+  assertEquals(r.ok, false);
+  if (!r.ok) assertEquals(r.reden, 'Betaalde of meervoudige extra MAYO: bezorg-btw en bedragopbouw niet bevestigd.');
 });
 Deno.test('restaurantbedrag wijkt af -> afgekeurd', () => {
   const r = controleer(parse({ ...basis, bedragen: { restaurant_cent: 1400 } }), kop); assertEquals(r.ok, false);

@@ -157,3 +157,27 @@ for (const aantal of [1, 3]) Deno.test(`ontvangst en zendroute onderschept: Ging
     assertEquals(t.externe_bestellingen[0].orderbericht, kassa[0]);
   });
 });
+
+for (const scenario of ['toepasselijk', 'ontbreekt', 'verkeerde-prijs', 'tegenstrijdig', 'betaald'] as const) Deno.test(`testontvangst reguliere extra ${scenario}: cataloguscontrole, nooit kassabericht of poging`, async () => {
+  await proef(async (t, post, kassa, gets) => {
+    // Fictieve uitsluitend lokale optiegegevens, nooit echte mappings of kassaverzoeken.
+    t.externe_product_koppeling.push({ vestiging: 'Midsland', soort: 'extra', externe_code: 'PV-FFA8275F|OPT', lightspeed_product_id: '9001', naam: 'Fictieve optie', prijs_cent: scenario === 'betaald' ? 50 : 0, actief: true });
+    const values = [{ id: 9001, name: 'Fictief', price: scenario === 'verkeerde-prijs' ? 1 : 0, priceWithoutVAT: 0 }];
+    if (scenario === 'tegenstrijdig') {
+      values.push({ id: 9002, name: 'Fictief ander', price: 0, priceWithoutVAT: 0 });
+      t.externe_product_koppeling.push({ vestiging: 'Midsland', soort: 'extra', externe_code: 'PV-FFA8275F|ANDER', lightspeed_product_id: '9002', naam: 'Fictieve andere optie', prijs_cent: 0, actief: true });
+    }
+    t.kaart_producten[0].additions = scenario === 'ontbreekt' ? [] : [{ id: 9000, name: 'Fictieve groep', values }];
+    const basis = bericht('LOKAAL-EXTRA-' + scenario);
+    const b = { ...basis, regels: [{ ...basis.regels[0], extras: [{ code: 'OPT', aantal: 1, stukprijs_cent: scenario === 'betaald' ? 50 : 0 }] }] };
+    if (scenario === 'tegenstrijdig') b.regels[0].extras.push({ code: 'ANDER', aantal: 1, stukprijs_cent: 0 });
+    b.bedragen.restaurant_cent = scenario === 'betaald' ? 2250 : 2100;
+    const res = await post(b);
+    assertEquals(res.status, scenario === 'toepasselijk' ? 201 : 422);
+    assertEquals((await res.json()).status, scenario === 'toepasselijk' ? 'test_ok' : 'afgekeurd');
+    assertEquals(gets.length, scenario === 'betaald' ? 0 : 2);
+    assertEquals(t.externe_bestellingen[0].orderbericht, null);
+    assertEquals(t.externe_bestelling_poging.length, 0);
+    assertEquals(kassa.length, 0);
+  });
+});

@@ -55,7 +55,7 @@ export const OphaaltijdSchema = z.object({
   bezorgtijd: iso.optional(),
 });
 
-export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean };
+export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean; keuze_verplicht?: boolean; keuze_toeslag_cent?: number | null };
 export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
 
 function sorteer(v: unknown): unknown {
@@ -90,6 +90,8 @@ export function gelijkeSleutel(a: string, b: string): boolean {
 
 /** Sleutel voor formaatkoppeling: gerechtcode + formaatkeuze. */
 export const formaatSleutel = (product: string, keuze: string) => `${product}|${keuze}`;
+/** Reguliere opties zijn altijd gerechtgebonden, eventueel aan het definitieve kassaproduct. */
+export const extraSleutel = (gerecht: string, extra: string, productId?: string) => productId ? `${gerecht}|${productId}|${extra}` : `${gerecht}|${extra}`;
 
 export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true; regels: Regel[] } | { ok: false; reden: string } {
   if (b.betaling.wijze !== 'vooraf_betaald') return { ok: false, reden: 'Betaalwijze niet ondersteund; alleen vooraf_betaald.' };
@@ -97,24 +99,29 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
   const k = (soort: Koppeling['soort'], code: string) => koppelingen.find((x) => x.soort === soort && x.externe_code === code && x.actief);
   const regels: Regel[] = []; let som = 0;
   for (const r of b.regels) {
+    if (new Set((r.extras ?? []).map(e => e.code)).size !== (r.extras ?? []).length) return { ok: false, reden: `Dubbele extra of keuze voor ${r.code}` };
     // Formaat: gerecht + keuze wordt precies 1x het afzonderlijke kassaproduct; toeslag niet nogmaals optellen.
     const formaten = (r.extras ?? []).map((e) => ({ e, f: k('formaat', formaatSleutel(r.code, e.code)) })).filter((x) => x.f);
-    const gerechtHeeftFormaten = koppelingen.some((x) => x.soort === 'formaat' && x.externe_code.startsWith(r.code + '|'));
+    const gerechtHeeftFormaten = koppelingen.some((x) => x.soort === 'formaat' && x.keuze_verplicht !== false && x.externe_code.startsWith(r.code + '|'));
     if (formaten.length > 1) return { ok: false, reden: `Meer dan één formaat voor ${r.code}` };
-    if (gerechtHeeftFormaten && formaten.length === 0) return { ok: false, reden: `Formaat ontbreekt of is onbekend voor ${r.code}` };
+    if (gerechtHeeftFormaten && !formaten.some(x => x.f?.keuze_verplicht !== false)) return { ok: false, reden: `Formaat ontbreekt of is onbekend voor ${r.code}` };
     let basis: Koppeling | undefined, stuk = r.stukprijs_cent, rest = r.extras ?? [];
     if (formaten.length === 1) {
       const { e, f } = formaten[0];
       if (e.aantal !== 1) return { ok: false, reden: `Formaat ${e.code} moet aantal 1 hebben` };
+      if (f?.keuze_verplicht === false && (!Number.isInteger(f.keuze_toeslag_cent) || f.keuze_toeslag_cent !== e.stukprijs_cent || r.stukprijs_cent !== f.prijs_cent - e.stukprijs_cent)) return { ok: false, reden: `Basisprijs of toeslag wijkt af voor variant ${r.code} + ${e.code}` };
       basis = f; stuk = r.stukprijs_cent + e.stukprijs_cent; rest = rest.filter((x) => x !== e);
     } else basis = k('product', r.code);
     if (!basis) return { ok: false, reden: `Onbekend product: ${r.code}` };
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
     for (const e of rest) {
-      const x = k('extra', e.code);
-      if (!x) return { ok: false, reden: `Onbekende extra: ${e.code}` };
+      const specifiek = koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code, basis.lightspeed_product_id));
+      const kandidaten = specifiek.length ? specifiek : koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code));
+      const x = kandidaten.length === 1 && kandidaten[0].actief ? kandidaten[0] : undefined;
+      if (!x) return { ok: false, reden: `Onbekende of niet toepasselijke extra voor ${r.code}: ${e.code}` };
       if (Math.abs(x.prijs_cent - e.stukprijs_cent) > 1) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code}` };
+      if (e.aantal !== 1 || e.stukprijs_cent !== 0 || x.prijs_cent !== 0) return { ok: false, reden: `Betaalde of meervoudige extra ${e.code}: bezorg-btw en bedragopbouw niet bevestigd.` };
       extras.push({ lightspeed_product_id: x.lightspeed_product_id, naam: x.naam, aantal: e.aantal, stukprijs_cent: e.stukprijs_cent });
       som += e.aantal * e.stukprijs_cent * r.aantal;
     }

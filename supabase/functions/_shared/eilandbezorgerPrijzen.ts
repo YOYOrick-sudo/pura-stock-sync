@@ -65,6 +65,7 @@ export function prijsRegels(regels: Regel[], producten: KaartProduct[], klassen:
       return { modifierId: g.id, modifierValueId: v.id, description: v.name, price: 0, priceWithoutVat: 0, ...(v.plu ? { plu: v.plu } : {}) };
     });
     if (new Set(modifiers.map(m => m.modifierValueId)).size !== modifiers.length) throw new Error('Dezelfde modifier is dubbel aangeleverd.');
+    if (new Set(modifiers.map(m => m.modifierId)).size !== modifiers.length) throw new Error('Tegenstrijdige keuzes binnen dezelfde modifiergroep.');
     return { ...r, ...prijs, kassa_modifiers: modifiers };
   });
 }
