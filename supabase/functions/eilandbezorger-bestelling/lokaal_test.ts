@@ -1,6 +1,8 @@
 // Volledige ontvang- en gesimuleerde liveweg, uitsluitend in geheugen; geen netwerkrechten.
 import { assertEquals } from 'jsr:@std/assert@1';
-import { fictiefProduct, GINGER_KAART, mockKaart } from '../_shared/eilandbezorgerPrijsFixtures.ts';
+import { fictiefProduct, GINGER_KAART, mockKaart, TEST_KLASSEN } from '../_shared/eilandbezorgerPrijsFixtures.ts';
+import { orderbericht } from '../_shared/eilandbezorgerLogica.ts';
+import { prijsRegels } from '../_shared/eilandbezorgerPrijzen.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { verzend } from '../_shared/eilandbezorgerVerzend.ts';
 
@@ -179,5 +181,42 @@ for (const scenario of ['toepasselijk', 'ontbreekt', 'verkeerde-prijs', 'tegenst
     assertEquals(t.externe_bestellingen[0].orderbericht, null);
     assertEquals(t.externe_bestelling_poging.length, 0);
     assertEquals(kassa.length, 0);
+  });
+});
+
+for (const modus of ['test', 'live']) Deno.test(`bloemkool beide dieetkeuzes ${modus}: rauw behouden, bonnotitie bij planning/heropbouw, geen kassa-POST`, async () => {
+  await proef(async (t, post, kassa) => {
+    t.externe_product_koppeling = [{ vestiging: 'Midsland', soort: 'product', externe_code: 'PV-3AC166C3', lightspeed_product_id: '4705081', lightspeed_plu: 'F76', naam: 'Geroosterde bloemkool', prijs_cent: 1050, actief: true }];
+    t.kaart_producten = [fictiefProduct(4705081, 10.5)];
+    const basis = bericht('LOKAAL-BLOEMKOOL-' + modus, modus);
+    const b = { ...basis, opmerking: '  Gastnotitie intact  ', ophaaltijd: '2026-11-22T20:00:00+01:00', regels: [{ code: 'PV-3AC166C3', aantal: 2, stukprijs_cent: 1050, extras: [{ code: 'PVK-AD715B1F-1', aantal: 1, stukprijs_cent: 0 }, { code: 'PVK-AD715B1F-2', aantal: 1, stukprijs_cent: 0 }] }] };
+    const res = await post(b); assertEquals(res.status, 201); assertEquals((await res.json()).status, modus === 'test' ? 'test_ok' : 'gepland');
+    const rij = t.externe_bestellingen[0];
+    assertEquals(rij.invoer.regels, b.regels); assertEquals(rij.regels[0].extras, []); assertEquals(rij.regels[0].gast_verzoek, 'bloemkool_glutenvrij');
+    const opnieuw = orderbericht({ referentie: rij.referentie, regels: prijsRegels(rij.regels, t.kaart_producten as any, TEST_KLASSEN), restaurant_cent: rij.restaurant_cent, ophaaltijd: rij.ophaaltijd, opmerking: rij.invoer.opmerking, betaalwijzeId: '77' });
+    assertEquals(opnieuw.note, '  Gastnotitie intact  \n\nRegel 1 (2×) – Geroosterde bloemkool – gast vraagt glutenvrij');
+    if (modus === 'live') assertEquals(rij.orderbericht.note, opnieuw.note); else assertEquals(rij.orderbericht, null);
+    assertEquals(kassa.length, 0); assertEquals(t.externe_bestelling_poging.length, 0);
+  });
+});
+for (const beide of [false, true]) Deno.test(`Saté twee regels, ${beide ? 'beide' : 'één'} glutenvrij: normale testontvangst, echte modifier en unieke regelnotitie`, async () => {
+  await proef(async (t, post, kassa) => {
+    t.externe_product_koppeling = [
+      { vestiging: 'Midsland', soort: 'product', externe_code: 'PV-51FDF8F3', lightspeed_product_id: '1071041', lightspeed_plu: 'Dv11', naam: 'Saté Spicy Tahoe', prijs_cent: 1100, actief: true },
+      { vestiging: 'Midsland', soort: 'extra', externe_code: 'PV-51FDF8F3|1071041|PVK-456C0BDC-1', lightspeed_product_id: '263905', naam: 'Glutenvrij', prijs_cent: 0, actief: true },
+    ];
+    t.kaart_producten = [{ ...fictiefProduct(1071041, 11), additions: [{ id: 9000, name: 'Lokale groep', values: [{ id: 263905, name: 'Glutenvrij', price: 0, priceWithoutVAT: 0 }] }] }];
+    const keuze = { code: 'PVK-456C0BDC-1', aantal: 1, stukprijs_cent: 0 };
+    const b = { ...bericht('LOKAAL-SATE-' + beide), opmerking: '  Eigen gastnotitie  ', regels: [
+      { code: 'PV-51FDF8F3', aantal: 1, stukprijs_cent: 1100, extras: beide ? [keuze] : [] },
+      { code: 'PV-51FDF8F3', aantal: 1, stukprijs_cent: 1100, extras: [keuze] },
+    ], bedragen: { restaurant_cent: 2200, bezorgkosten_cent: 0, fooi_cent: 0, korting: null } };
+    const res = await post(b); assertEquals(res.status, 201); assertEquals((await res.json()).status, 'test_ok');
+    const rij = t.externe_bestellingen[0]; assertEquals(rij.invoer.regels, b.regels);
+    const uit = orderbericht({ referentie: rij.referentie, regels: prijsRegels(rij.regels, t.kaart_producten as any, TEST_KLASSEN), restaurant_cent: rij.restaurant_cent, ophaaltijd: rij.ophaaltijd, opmerking: rij.invoer.opmerking, betaalwijzeId: '77' });
+    const tekst = 'Saté Spicy Tahoe – glutenvrij verzocht, zonder gefruite uitjes';
+    assertEquals(uit.note, '  Eigen gastnotitie  \n\n' + (beide ? 'Regel 1 (1×) – ' + tekst + '\n' : '') + 'Regel 2 (1×) – ' + tekst);
+    assertEquals(uit.orderItems.map(r => r.modifiers.map(m => m.modifierValueId)), beide ? [[263905], [263905]] : [[], [263905]]);
+    assertEquals(rij.orderbericht, null); assertEquals(kassa.length, 0); assertEquals(t.externe_bestelling_poging.length, 0);
   });
 });

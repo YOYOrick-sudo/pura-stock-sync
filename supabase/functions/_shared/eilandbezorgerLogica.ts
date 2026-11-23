@@ -56,7 +56,7 @@ export const OphaaltijdSchema = z.object({
 });
 
 export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean; keuze_verplicht?: boolean; keuze_toeslag_cent?: number | null };
-export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
+export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; gast_verzoek?: 'bloemkool_glutenvrij' | 'tahoe_glutenvrij'; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
 
 function sorteer(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sorteer);
@@ -115,6 +115,7 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
     if (!basis) return { ok: false, reden: `Onbekend product: ${r.code}` };
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
+    let gastVerzoek: Regel['gast_verzoek'];
     for (const e of rest) {
       // Hula is standaard vegan: bewaar de bronkeuze, maar maak geen kassamodifier.
       if (r.code === 'PV-F7B26912' && e.code === 'PVK-319766B2-1') {
@@ -126,17 +127,34 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
         }
         continue;
       }
+      const standaardVegan = e.code === 'PVK-AD715B1F-1' && (r.code === 'PV-6F37A149' || r.code === 'PV-3AC166C3');
+      const bloemkoolGlutenvrij = r.code === 'PV-3AC166C3' && e.code === 'PVK-AD715B1F-2';
+      if (standaardVegan || bloemkoolGlutenvrij) {
+        const doel = r.code === 'PV-6F37A149' ? ['2084809', 'V11'] : ['4705081', 'F76'];
+        if (b.vestiging !== '36864' || basis.soort !== 'product' || basis.lightspeed_product_id !== doel[0] || basis.lightspeed_plu !== doel[1] || e.aantal !== 1 || e.stukprijs_cent !== 0) {
+          return { ok: false, reden: `Dieetkeuze ${e.code} vereist het bevestigde product voor ${r.code} en één gratis keuze.` };
+        }
+        // Menukaart/eigenaar leidend; een gastverzoek is geen allergenenvrij-belofte.
+        if (bloemkoolGlutenvrij) gastVerzoek = 'bloemkool_glutenvrij';
+        continue;
+      }
       const specifiek = koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code, basis.lightspeed_product_id));
       const kandidaten = specifiek.length ? specifiek : koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code));
       const x = kandidaten.length === 1 && kandidaten[0].actief ? kandidaten[0] : undefined;
       if (!x) return { ok: false, reden: `Onbekende of niet toepasselijke extra voor ${r.code}: ${e.code}` };
       if (Math.abs(x.prijs_cent - e.stukprijs_cent) > 1) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code}` };
       if (e.aantal !== 1 || e.stukprijs_cent !== 0 || x.prijs_cent !== 0) return { ok: false, reden: `Betaalde of meervoudige extra ${e.code}: bezorg-btw en bedragopbouw niet bevestigd.` };
+      if (r.code === 'PV-51FDF8F3' && e.code === 'PVK-456C0BDC-1') {
+        if (b.vestiging !== '36864' || basis.lightspeed_product_id !== '1071041' || basis.lightspeed_plu !== 'Dv11' || x.lightspeed_product_id !== '263905') {
+          return { ok: false, reden: 'Saté Glutenvrij vereist de bevestigde Saté Spicy Tahoe en echte Glutenvrij-optie.' };
+        }
+        gastVerzoek = 'tahoe_glutenvrij';
+      }
       extras.push({ lightspeed_product_id: x.lightspeed_product_id, naam: x.naam, aantal: e.aantal, stukprijs_cent: e.stukprijs_cent });
       som += e.aantal * e.stukprijs_cent * r.aantal;
     }
     som += r.aantal * stuk;
-    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras });
+    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras, ...(gastVerzoek ? { gast_verzoek: gastVerzoek } : {}) });
   }
   if (som !== b.bedragen.restaurant_cent) return { ok: false, reden: `Restaurantbedrag klopt niet: regels ${som}, opgegeven ${b.bedragen.restaurant_cent}` };
   return { ok: true, regels };
@@ -169,12 +187,26 @@ export async function zelfdeBestelling(r: any, b: Bestelling, vinger: string): P
 
 export const centen = (euro: number) => Math.round(euro * 100);
 
-/** Vaste klant; orderspecifieke gastnaam en bestelnummer in description, opmerking exact in note. */
+/** Alleen gevalideerde regelgebonden verzoeken; originele gastnotitie nooit trimmen/herschrijven. */
+export function gastVerzoekNotitie(regels: Regel[], opmerking?: string): string | undefined {
+  const verzoeken = regels.flatMap((r, index) => {
+    if (r.gast_verzoek === undefined) return [];
+    const bloemkool = r.gast_verzoek === 'bloemkool_glutenvrij' && r.lightspeed_product_id === '4705081' && r.lightspeed_plu === 'F76';
+    const tahoe = r.gast_verzoek === 'tahoe_glutenvrij' && r.lightspeed_product_id === '1071041' && r.lightspeed_plu === 'Dv11' && r.extras.some(e => e.lightspeed_product_id === '263905' && e.aantal === 1 && e.stukprijs_cent === 0);
+    if ((!bloemkool && !tahoe) || !Number.isInteger(r.aantal) || r.aantal < 1) throw new Error('Dieetverzoek niet veilig aan een bestelregel gekoppeld; handmatige keukencontrole vereist.');
+    return [`Regel ${index + 1} (${r.aantal}×) – ${bloemkool ? 'Geroosterde bloemkool – gast vraagt glutenvrij' : 'Saté Spicy Tahoe – glutenvrij verzocht, zonder gefruite uitjes'}`];
+  });
+  return verzoeken.length ? (opmerking ? opmerking + '\n\n' : '') + verzoeken.join('\n') : opmerking;
+}
+
+/** Vaste klant; gastnaam/bestelnummer in description, originele opmerking plus expliciete regelverzoeken in note. */
 export function orderbericht(p: { referentie: string; bestelnummer?: string; ophaaltijd: string; opmerking?: string; regels: GeprijsdeRegel[]; restaurant_cent: number;
   betaalwijzeId: string | null; betaalwijzeTypeId?: string | null; klantId?: string | null; route?: 'customer_order' | 'establishment_order'; companyId?: string | null; klant?: unknown }) {
   const est = p.route === 'establishment_order';
+  const note = gastVerzoekNotitie(p.regels, p.opmerking);
   if (!p.regels.length || p.regels.some(r => !Number.isFinite(r.netto_euro) || r.netto_euro < 0 ||
     !Number.isFinite(r.bezorg_btw_pct) || !Array.isArray(r.kassa_modifiers) ||
+    (r.gast_verzoek === 'tahoe_glutenvrij' && !r.kassa_modifiers.some(m => m.modifierValueId === 263905 && m.price === 0 && m.priceWithoutVat === 0)) ||
     r.extras.some(e => e.stukprijs_cent !== 0)) ||
     p.regels.reduce((s, r) => s + r.aantal * r.stukprijs_cent, 0) !== p.restaurant_cent) {
     throw new Error('Geen volledig geverifieerde netto-/btw-gegevens voor het kassabericht.');
@@ -188,7 +220,7 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
     status: 'ACCEPTED',
     deliveryDate: p.ophaaltijd,
     description: [p.bestelnummer ?? p.referentie, gastNaam({ klant: p.klant })].filter(Boolean).join(' — '),
-    ...(p.opmerking ? { note: p.opmerking } : {}),
+    ...(note ? { note } : {}),
     orderItems: p.regels.map((r) => ({
       ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),
       amount: r.aantal, unitPrice: r.stukprijs_cent / 100, totalPrice: (r.aantal * r.stukprijs_cent) / 100,
