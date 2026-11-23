@@ -116,6 +116,16 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
     for (const e of rest) {
+      // Hula is standaard vegan: bewaar de bronkeuze, maar maak geen kassamodifier.
+      if (r.code === 'PV-F7B26912' && e.code === 'PVK-319766B2-1') {
+        const formaat = formaten[0];
+        const klein = formaat?.e.code === 'PVK-241B2733-1' && basis.lightspeed_product_id === '1071103' && basis.lightspeed_plu === 'Dh16' && stuk === 1650 && formaat.e.stukprijs_cent === 0;
+        const groot = formaat?.e.code === 'PVK-241B2733-2' && basis.lightspeed_product_id === '2385828' && basis.lightspeed_plu === 'B140' && stuk === 2500 && formaat.e.stukprijs_cent === 850;
+        if (b.vestiging !== '36864' || e.aantal !== 1 || e.stukprijs_cent !== 0 || r.stukprijs_cent !== 1650 || basis.prijs_cent !== stuk || formaat?.f?.keuze_verplicht === false || (!klein && !groot)) {
+          return { ok: false, reden: 'Hula Vegan vereist de bevestigde Klein/Groot-koppeling, exacte maatprijs en één gratis keuze.' };
+        }
+        continue;
+      }
       const specifiek = koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code, basis.lightspeed_product_id));
       const kandidaten = specifiek.length ? specifiek : koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code));
       const x = kandidaten.length === 1 && kandidaten[0].actief ? kandidaten[0] : undefined;
