@@ -29,3 +29,6 @@ project_id = "ajtqzzzpawqcoaphdkaz"
     verify_jwt = false
   [functions.kassa-tussenweg-doorsturen]
     verify_jwt = false
+  # Alleen het cron-endpoint: elke aanroep vereist de server-side x-sync-token.
+  [functions.eilandbezorger-ronde]
+    verify_jwt = false

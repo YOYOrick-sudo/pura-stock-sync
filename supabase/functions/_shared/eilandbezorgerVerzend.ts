@@ -1,6 +1,7 @@
 import { geldigToken } from './lightspeedToken.ts';
 import { BestellingSchema, gelijkJson, vingerafdruk, orderbericht, kassaBlokkade, orderPad, uitkomstVan } from './eilandbezorgerLogica.ts';
 import { vasteKlantId } from './eilandbezorgerKlant.ts';
+import { controleerPlanningVoorPost } from './eilandbezorgerPlanning.ts';
 import { actuelePrijsRegels } from './eilandbezorgerPrijzen.ts';
 import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, eersteProef, exacteProef, herkenProef, proefControle, proefPogingen, PROEF_HERVATTING, PROEF_OWNER_ID } from './eilandbezorgerProef.ts';
 
@@ -23,7 +24,7 @@ export async function meld(admin: any, vestiging: string, titel: string, tekst: 
 
 type Haal = typeof fetch;
 /** Eén verzendpoging. Verwacht een rij met status 'verzenden' (door de aanroeper geclaimd). */
-export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave?: symbol) {
+export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave?: symbol, planningOpening?: string) {
   // Verdediging op alle aanroeppaden, vóór tokenbeheer of een kassaverzoek.
   if (rij.modus !== 'live' || rij.vestiging !== 'Midsland' || rij.status !== 'verzenden') return rij;
   const proef = herkenProef(rij);
@@ -94,6 +95,16 @@ export async function verzend(admin: any, rij: any, haal: Haal = fetch, vrijgave
     if (blokkade) {
       await admin.from('externe_bestelling_poging').update({ uitkomst: 'niet_verstuurd', antwoord: blokkade, klaar_op: new Date().toISOString() }).eq('id', poging.id);
       return await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, blokkade) ?? rij;
+    }
+  }
+  if (planningOpening !== undefined) {
+    const reden = opgeslagen.error ? 'Kassabericht kon niet worden opgeslagen.' :
+      await controleerPlanningVoorPost(admin, rij, planningOpening);
+    if (reden) {
+      await admin.from('externe_bestelling_poging').update({ uitkomst: 'niet_verstuurd', antwoord: reden, klaar_op: new Date().toISOString() }).eq('id', poging.id);
+      const geblokkeerd = await overgang(admin, rij.id, rij.versie, ['verzenden'], 'geblokkeerd', {}, reden);
+      if (geblokkeerd) await meld(admin, rij.vestiging, 'Eilandbezorger geblokkeerd', `${rij.extern_id}: ${reden}`);
+      return geblokkeerd ?? rij;
     }
   }
   try {
