@@ -1,30 +1,21 @@
-# Midsland: Bietenburger Vegan en Saté-glutenvrijblokkade
+# Alleen-lezen onderzoek: opbouw betaalde modifiers (Midsland 36864)
 
-## Bevestigde bron en afbakening
-- Laatste besluit Bietenburger: 29 oktober 2026 16:52:33 UTC; `kaart_codes_na` én huidige `gerechten.kaart_codes` zijn VG/GLO. Gewone burger is vegan; GLO vereist apart glutenvrij brood. Friet is VG, niet GL vanwege gedeelde frituur.
-- Laatste besluit Saté Spicy Tahoe: 29 oktober 2026 15:05:39 UTC; beide kaartcodes zijn VG/P. GL verwijderd, geen goedgekeurde GLO.
-- De oude Saté-extra blijkt bij controle nog **actief**, anders dan gemeld. Geen configuratiemutatie: de koppeling wordt in de bestaande validatie zelfstandig geblokkeerd, ook als deze actief staat.
-- Alleen Midsland 36864. Geen menu-, ingrediënten-, database-, prijs-, printer-, live- of publicatiewijzigingen. Historische ontvangsten en eerdere resultaten blijven intact.
+## Doel
+Feitelijk bewijs voor hoe L-Series OnlineOrdering bruto- en nettobedragen van betaalde modifiers opslaat. Er wordt niets gebouwd, uitgerold, besteld of gewijzigd.
 
-## Wat verandert in de praktijk
-Eilandbezorger kan de gewone Bietenburger met het gratis Vegan-vinkje aanleveren: één soloartikel (€15,50) of één compleet burger-frietartikel (€22,50), zonder tweede friet of modifier. Een teamlid hoeft daarvoor niets extra te bereiden of in te vullen.
-Saté met Glutenvrij wordt afgekeurd en komt niet in de kassa; gewone Saté blijft mogelijk. Het team mag deze afkeur niet omzeilen met een oude website of eerder geslaagde test. Bij een onderbroken ontvangst blijven de bestaande duplicaatbeveiliging en test/live-scheiding gelden; geen automatische retry of nieuwe verzendpoging.
+## Stappen
+1. Kijk eerst welke Midsland-gegevens er al in de database staan: bestaande `lightspeed_connections` (alleen de status, geen token) en of kassabon 414226679 aan een online order gekoppeld is.
+2. Doe kleine, begrensde GET-aanvragen via het bestaande server-side tokenbeheer van Midsland. Het token wordt niet uitgelezen of getoond.
+   - Zoek de online order bij bon 414226679, of anders een recente Order Anywhere-order.
+   - Zoek een regel met een betaalde modifier, liefst Uluwatu Groot met Sriracha. Zoek ook een tweede voorbeeld met aantal >1.
+   - Haal de productbasisprijs los op uit de kaart.
+   - Bij een 429 vertraag ik eenmaal en stop ik daarna.
+3. Vergelijk per regel: unitPrice, totalPrice, de nettobedragen, quantity, de modifier price en priceWithoutVat, de basisprijs en de totaal ontvangen betaling.
+4. Rapporteer alleen geanonimiseerde bedragen en ID's, zonder gastgegevens of volledige orderdata. Ik meld ook expliciet of het een echt opgeslagen OnlineOrdering-bericht was of alleen een kassabon.
 
-## Gerichte wijzigingen
-1. Bietenburger `PV-CE0EF3F3` + `PVK-319766B2-1`: dezelfde bevestigingsstructuur als Hula/Hummus. Alleen BPB4/4499170 als solo of BPB6/4499175 via de bestaande €7-frietkeuze; aantal 1 en €0 per keuze, gewone prijscontrole, rauwe keuze bewaren, geen modifier/toeslag.
-2. Verkeerde codes/IDs/PLUs, dubbele/betaalde/meervoudige Vegan-keuzes en ongeldige frietkeuzes blokkeren. Glutenvrij op het gewone broodje niet toestaan. Betaald brood niet veranderen en friet niet als glutenvrij behandelen.
-3. Saté `PV-51FDF8F3` + `PVK-456C0BDC-1` expliciet afkeuren vóór algemene extra-validatie. De eerdere Saté-glutenvrijtoestemming en automatische uitjestekst vervallen voor nieuwe verwerking. Ook lokale bonopbouw met de oude Saté-glutenvrijmetadata/modifier blokkeren, zonder historische JSON te herschrijven.
-4. Hula, Hummus/bloemkool, bestaande echte toegestane modifiers en betaald-broodbeveiliging behouden. Aubergine Glutenvrij blijft geblokkeerd voor beoordeling; kaarticoon alleen is onvoldoende.
+## Bekend risico
+Eerdere alleen-lezen GET's op orders en bonnen gaven 401. Een geldige eigenaarssessie was toen niet beschikbaar. Gebeurt dat weer, dan stop ik direct en meld ik de concrete reden. Ik probeer dan geen andere route.
 
-## Verificatie en oplevering
-- Netwerkloze regressies: Bietenburger solo zonder/met Vegan; friet zonder/met Vegan; concrete IDs, aantallen, €15,50/€22,50 en geen extra modifier; rauwe invoer onveranderd. Negatieve codes, IDs/PLUs, dubbele/betaalde/meervoudige vinkjes, gewone-bun-Glutenvrij en friet-Glutenvrij.
-- Saté zonder vinkje toegestaan; Glutenvrij afgekeurd bij actieve én inactieve oude mapping. Lokale bonopbouw weigert oude Saté-glutenvrijregels; toegestane Hula- en bloemkoolregels blijven goed.
-- Alleen `eilandbezorger-bestelling` en `eilandbezorger-beheer` uitrollen indien geraakt.
-- Nieuwe fictieve nummers via bestaande server-side fixture en normale POST/status-GET in `modus=test`; geen directe inserts, sleutels uitlezen of externe order. Lees opgeslagen regels/bedragen en rauwe keuzes terug; bevestig per ontvangst nul pogingen/kassaberichten/order-ID en reguliere live uit.
-- Exacte referenties, HTTP/status en afkeurreden vastleggen; eerdere resultaten niet aanpassen.
-
-## Technische scope en risico
-- Bestanden: `_shared/eilandbezorgerLogica.ts`, bestaande dieet-/burgerregressies; `AGENTS.md` en `roadmap.md` alleen gericht bijwerken. Geen nieuwe library, tabel, migratie of autorisatieregel.
-- Categorie: backend-validatiewijziging met alleen-lezen broncontrole en bestaande testontvangst; geen RLS-/rolwijziging.
-- Operationeel risico: de oude Saté-modifier kan anders onterecht glutenvrij doorgeven; daarom een expliciete blokkade los van mappingstatus en een berichtopbouwtest. Bietenburger mag niet een tweede friet of fictieve modifier krijgen; daarom exact eindproduct en bestaande combo-opbouw controleren.
-- Geen nieuwe lijsten of groeiende beoordelingstaken; alleen bestaande ontvangsthistorie groeit door unieke, herkenbare testontvangsten.
+## Technisch
+- De aanvragen lopen alleen via een bestaande server-side route die GET-only proxyt. Bestaat zo'n route niet zonder nieuwe code of uitrol, dan voer ik niets uit en meld ik dat als blokkade.
+- Er worden geen writes, migraties, deploys, wijzigingen aan de livevlag of publicaties gedaan.
