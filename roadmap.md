@@ -25,3 +25,8 @@
 - [x] Midsland-betaalwijze Eilandbezorger: gerichte GET bevestigd (HTTP 200); ID 285794 en typeId 4 opgeslagen en teruggelezen; live uit
 - [x] Eilandbezorger: vaste Midsland-klant, gastnaam per order, contactgegevens weglaten, historische duplicaten behouden, lokale tests en instructie
 - [ ] Begeleide FR01-frietproef uitvoeren — opdracht voor 23 november ontvangen; geblokkeerd doordat specifieke Yorick-preview-aanmelding gebruikersgoedkeuring vereist die deze context niet aanbiedt; eigen-accountaanmelding gaf niet het oorspronkelijke Pura-eigenaarsaccount. Geen uitvoering zonder juiste bevoegdheid; beide referenties zonder order/poging bevestigd.
+
+## Eilandbezorger herstel 25-11 (Midsland, test)
+- [x] Hula/Biet/Tom Kha Vegan informatief; betaalde sauzen/brood bewezen en vrijgegeven; drankcontrole
+- [ ] Open (eigenaar/Karin): Bietenburger- en Hummus-Glutenvrij-vinkje, Lamsburger glutenvrij brood, appelsap €4 op EB-kaart
+- [ ] Planner `eilandbezorger-ronde` nog op oude gedeelde code (betaalde opties blijven daar dicht) tot afzonderlijke uitrol

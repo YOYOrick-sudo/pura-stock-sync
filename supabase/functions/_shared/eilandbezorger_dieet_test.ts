@@ -123,7 +123,8 @@ Deno.test('Historische genormaliseerde regels zonder metadata krijgen geen nieuw
 Deno.test('Betaald glutenvrij brood €1 wordt nooit gratis bevestiging', () => {
   const input = b(doelen[0], [e('PVK-DBE8A359-1', 1, 100)]);
   const kop: Koppeling[] = [...mappings, { soort: 'extra', externe_code: 'PV-6F37A149|2084809|PVK-DBE8A359-1', lightspeed_product_id: '1307819', naam: 'Glutenvrij brood', prijs_cent: 100, actief: true }];
-  assertEquals(controleer(input, kop), { ok: false, reden: 'Betaalde of meervoudige extra PVK-DBE8A359-1: bezorg-btw en bedragopbouw niet bevestigd.' });
+  const c = controleer(input, kop); if (!c.ok) throw new Error(c.reden);
+  assertEquals(c.regels[0].extras, [{ lightspeed_product_id: '1307819', naam: 'Glutenvrij brood', aantal: 1, stukprijs_cent: 100 }]);
 });
 Deno.test('Onbekende keuze, aubergine Glutenvrij, andere gerechten Vegan niet omzetten', () => {
   assertEquals(controleer(b(doelen[0], [e('ONBEKEND')]), mappings).ok, false);

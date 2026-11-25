@@ -74,8 +74,9 @@ Deno.test('productgebonden mapping gaat vóór gerechtmapping; inactief blokkeer
   const kop = [...mappings, extra(extraSleutel(gerecht, 'OPT')), { ...extra(extraSleutel(gerecht, 'OPT', burgers[0].solo), '9002'), actief: false }];
   assertEquals(controleer(b, kop).ok, false);
 });
-Deno.test('betaalde extra blijft dicht ondanks een opgeslagen ID', () => {
-  assertEquals(controleer(bestelling(gerecht, [keuze('OPT', 1, 50)]), [...mappings, extra(extraSleutel(gerecht, 'OPT'), '9001', 50)]).ok, false);
+Deno.test('betaalde extra alleen met exact opgeslagen prijs', () => {
+  assertEquals(controleer(bestelling(gerecht, [keuze('OPT', 1, 50)]), [...mappings, extra(extraSleutel(gerecht, 'OPT'), '9001', 50)]).ok, true);
+  assertEquals(controleer(bestelling(gerecht, [keuze('OPT', 1, 50)]), [...mappings, extra(extraSleutel(gerecht, 'OPT'), '9001', 60)]).ok, false);
 });
 Deno.test('optie moet echt in additions van het definitieve kassaproduct staan', () => {
   const c = controleer(bestelling(gerecht, [keuze('OPT', 1, 0)]), [...mappings, extra(extraSleutel(gerecht, 'OPT'))]); if (!c.ok) throw new Error(c.reden);

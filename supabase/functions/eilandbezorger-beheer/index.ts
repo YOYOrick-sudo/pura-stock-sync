@@ -9,6 +9,7 @@ import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, isProef, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { gingerBeerProef, hervatGingerBeerProef } from './proef.ts';
+import { kassaInspectie } from './inspectie.ts';
 
 const functieHeaders = { ...corsHeaders, 'X-Pura-Kassa-Schema': KASSA_SCHEMA };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...functieHeaders, 'Content-Type': 'application/json' } });
@@ -31,6 +32,10 @@ const Schema = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('ronde') }),
   z.object({ actie: z.literal('kassa_instellingen'), alleen_betaalwijzen: z.boolean().optional() }),
   z.object({ actie: z.literal('kaart'), bron: z.enum(['product', 'productgroup', 'modifierClass', 'modifier']), prijscontrole: z.literal(true).optional() }),
+  z.object({ actie: z.literal('kassa_inspectie'), soort: z.enum(['kaart', 'orders', 'bon', 'order']), order_ids: z.array(z.string().regex(/^[1-9][0-9]{0,11}$/)).min(1).max(10).optional(),
+    product_ids: z.array(z.string().regex(/^[1-9][0-9]{0,9}$/)).min(1).max(20).optional(),
+    datum: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), bon_id: z.number().int().positive().optional(),
+    offset: z.number().int().min(0).max(20000).optional(), status: z.enum(['PAID', 'ACCEPTED', 'DONE', 'CANCELED']).optional() }).strict(),
 ]);
 
 // Alleen-lezen: volledige Lightspeed-kaart Midsland ophalen, alle pagina's. Nooit schrijven.
@@ -107,6 +112,9 @@ Deno.serve(async (req) => {
   const p = Schema.safeParse(ruw);
   if (!p.success) return json({ fout: 'ongeldig', velden: p.error.flatten().fieldErrors }, 400);
   const a = p.data;
+  if (a.actie === 'kassa_inspectie' && ((a.soort === 'kaart' && !a.product_ids) || (a.soort === 'order' && !a.order_ids) || (a.soort === 'bon' && (!a.datum || !a.bon_id)))) {
+    return json({ fout: 'ongeldig', velden: { kassa_inspectie: ['kaart vraagt product_ids; bon vraagt datum en bon_id'] } }, 400);
+  }
   const auth = req.headers.get('Authorization') ?? '';
   const cron = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
 
@@ -115,6 +123,10 @@ Deno.serve(async (req) => {
       const ok = auth === `Bearer ${service}` || (cron.length > 0 && req.headers.get('x-sync-token') === cron);
       if (!ok) return json({ fout: 'niet toegestaan' }, 401);
       return json(await ronde(admin));
+    }
+    // Alleen-lezen kassabewijs: eigenaar, of de server-side cron-sleutel voor geautoriseerde nacontrole.
+    if (a.actie === 'kassa_inspectie' && cron.length > 0 && req.headers.get('x-sync-token') === cron) {
+      return json(await kassaInspectie(admin, a));
     }
     if (!auth.startsWith('Bearer ')) return json({ fout: 'niet ingelogd' }, 401);
     const { data: u } = await createClient(url, anon, { global: { headers: { Authorization: auth } } }).auth.getUser();
@@ -133,6 +145,10 @@ Deno.serve(async (req) => {
     if (a.actie === 'kassa_instellingen') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
       return json(await kassaInstellingen(admin, a.alleen_betaalwijzen === true));
+    }
+    if (a.actie === 'kassa_inspectie') {
+      if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      return json(await kassaInspectie(admin, a));
     }
     if (a.actie === 'kaart') {
       if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);

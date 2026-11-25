@@ -5,7 +5,7 @@ export type KaartProduct = {
   id: number; visible: boolean; deliveryPrice?: number | null; deliveryPriceWithoutVat?: number | null;
   deliveryTaxClass?: string | null;
   takeawayPrice?: number | null; takeawayPriceWithoutVat?: number | null; takeawayTaxClass?: string | null;
-  additions?: { id: number; name: string; values: { id: number; name: string; price: number; priceWithoutVAT: number; plu?: string }[] }[];
+  additions?: { id: number; name: string; multiselect?: boolean; maxSelectedAmount?: number; values: { id: number; name: string; price: number; priceWithoutVAT: number; plu?: string }[] }[];
 };
 export type BtwKlasse = { id: string; taxRate: number };
 export type KassaModifier = { modifierId: number; modifierValueId: number; description: string; price: number; priceWithoutVat: number; plu?: string };
@@ -56,16 +56,20 @@ export function prijsRegels(regels: Regel[], producten: KaartProduct[], klassen:
       const keuzes = (p.additions ?? []).flatMap(g => g.values.filter(v => String(v.id) === e.lightspeed_product_id).map(v => ({ g, v })));
       if (keuzes.length !== 1) throw new Error(`Extra ${e.naam} is niet eenduidig aan product ${p.id} gekoppeld.`);
       const { g, v } = keuzes[0];
-      // Betaalde modifiers hebben geen afzonderlijke bezorgklasse; hun optelling is niet bewezen.
-      // Fail closed in plaats van productId/amount/unitPrice naar een modifier-DTO te sturen.
-      if (e.aantal !== 1 || e.stukprijs_cent !== 0 || v.price !== 0 || v.priceWithoutVAT !== 0 ||
-        !Number.isSafeInteger(g.id) || g.id <= 0 || !Number.isSafeInteger(v.id) || v.id <= 0) {
-        throw new Error(`Betaalde of meervoudige extra ${e.naam}: bezorg-btw en bedragopbouw niet bevestigd.`);
+      // Bewezen in oorspronkelijke onlineorders: modifier.price is de bruto toeslag per portie,
+      // priceWithoutVat staat op 0 en unitPrice blijft de basisprijs. Kaartprijs moet exact kloppen.
+      if (e.aantal !== 1 || !bedrag(v.price) || Math.round(v.price * 100) !== e.stukprijs_cent || afronden(v.price, 100) !== v.price ||
+        v.priceWithoutVAT !== 0 || !Number.isSafeInteger(g.id) || g.id <= 0 || !Number.isSafeInteger(v.id) || v.id <= 0) {
+        throw new Error(`Extra ${e.naam}: kassaprijs of opbouw wijkt af voor product ${p.id}.`);
       }
-      return { modifierId: g.id, modifierValueId: v.id, description: v.name, price: 0, priceWithoutVat: 0, ...(v.plu ? { plu: v.plu } : {}) };
+      return { modifierId: g.id, modifierValueId: v.id, description: v.name, price: v.price, priceWithoutVat: 0, ...(v.plu ? { plu: v.plu } : {}) };
     });
     if (new Set(modifiers.map(m => m.modifierValueId)).size !== modifiers.length) throw new Error('Dezelfde modifier is dubbel aangeleverd.');
-    if (new Set(modifiers.map(m => m.modifierId)).size !== modifiers.length) throw new Error('Tegenstrijdige keuzes binnen dezelfde modifiergroep.');
+    for (const g of p.additions ?? []) {
+      const n = modifiers.filter(m => m.modifierId === g.id).length;
+      const max = typeof g.maxSelectedAmount === 'number' && g.maxSelectedAmount > 0 ? g.maxSelectedAmount : g.multiselect && g.maxSelectedAmount === -1 ? Infinity : 1;
+      if (n > max) throw new Error('Tegenstrijdige keuzes binnen dezelfde modifiergroep.');
+    }
     return { ...r, ...prijs, kassa_modifiers: modifiers };
   });
 }

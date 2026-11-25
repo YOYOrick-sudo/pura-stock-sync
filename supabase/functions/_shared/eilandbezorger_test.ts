@@ -50,10 +50,12 @@ const kop = [
 ] as any;
 const parse = (x: unknown) => BestellingSchema.parse(x);
 
-Deno.test('onbewezen betaalde modifier blijft dicht bij de ontvangstcontrole', () => {
+Deno.test('betaalde gerechtgebonden keuze met exacte prijs telt per portie mee; afwijking blokkeert', () => {
   const r = controleer(parse(basis), [{ ...kop[0] }, { ...kop[1], externe_code: 'FRIET|MAYO' }]);
-  assertEquals(r.ok, false);
-  if (!r.ok) assertEquals(r.reden, 'Betaalde of meervoudige extra MAYO: bezorg-btw en bedragopbouw niet bevestigd.');
+  if (!r.ok) throw new Error(r.reden);
+  assertEquals(r.regels[0].extras, [{ lightspeed_product_id: '9', naam: 'Mayo', aantal: 1, stukprijs_cent: 50 }]);
+  assertEquals(controleer(parse({ ...basis, regels: [{ ...basis.regels[0], extras: [{ code: 'MAYO', aantal: 1, stukprijs_cent: 51 }] }], bedragen: { restaurant_cent: 1502 } }), [{ ...kop[0] }, { ...kop[1], externe_code: 'FRIET|MAYO' }]).ok, false);
+  assertEquals(controleer(parse({ ...basis, regels: [{ ...basis.regels[0], extras: [{ code: 'MAYO', aantal: 2, stukprijs_cent: 50 }] }], bedragen: { restaurant_cent: 1600 } }), [{ ...kop[0] }, { ...kop[1], externe_code: 'FRIET|MAYO' }]).ok, false);
 });
 Deno.test('restaurantbedrag wijkt af -> afgekeurd', () => {
   const r = controleer(parse({ ...basis, bedragen: { restaurant_cent: 1400 } }), kop); assertEquals(r.ok, false);

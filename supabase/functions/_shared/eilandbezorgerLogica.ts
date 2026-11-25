@@ -93,6 +93,21 @@ export const formaatSleutel = (product: string, keuze: string) => `${product}|${
 /** Reguliere opties zijn altijd gerechtgebonden, eventueel aan het definitieve kassaproduct. */
 export const extraSleutel = (gerecht: string, extra: string, productId?: string) => productId ? `${gerecht}|${productId}|${extra}` : `${gerecht}|${extra}`;
 
+/** Eigenaar bevestigd standaard vegan: het gratis vinkje is alleen informatief, geen modifier of handeling. */
+export const STANDAARD_VEGAN: Record<string, { keuze: string; doelen: [string, string][] }> = {
+  'PV-6F37A149': { keuze: 'PVK-AD715B1F-1', doelen: [['2084809', 'V11']] },
+  'PV-3AC166C3': { keuze: 'PVK-AD715B1F-1', doelen: [['4705081', 'F76']] },
+  'PV-F7B26912': { keuze: 'PVK-319766B2-1', doelen: [['1071103', 'Dh16'], ['2385828', 'B140']] },
+  'PV-CE0EF3F3': { keuze: 'PVK-319766B2-1', doelen: [['4499170', 'BPB4'], ['4499175', 'BPB6']] },
+  'PV-7B1071AD': { keuze: 'PVK-319766B2-1', doelen: [['2843422', 'F47']] },
+};
+/** Keuzes zonder kassakeuze of eigenaarsbesluit krijgen een concrete reden in plaats van een gok. */
+const GERICHTE_BLOKKADE: Record<string, string> = {
+  'PV-CE0EF3F3|PVK-456C0BDC-1': 'Bietenburger Glutenvrij: de kassa heeft voor dit product geen glutenvrij-keuze en de friet is niet glutenvrij; alleen betaald glutenvrij brood is bewezen. Handmatige beoordeling.',
+  'PV-6F37A149|PVK-AD715B1F-2': 'Loaded Hummus Glutenvrij: de kassa heeft voor dit product alleen betaald glutenvrij brood; het gratis vinkje is niet bevestigd. Handmatige beoordeling.',
+  'PV-BE202ED8|PVK-DBE8A359-1': 'Glutenvrij brood is in de kassa niet beschikbaar voor Lamsburger (solo of met friet). Handmatige beoordeling.',
+};
+
 export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true; regels: Regel[] } | { ok: false; reden: string } {
   if (b.betaling.wijze !== 'vooraf_betaald') return { ok: false, reden: 'Betaalwijze niet ondersteund; alleen vooraf_betaald.' };
   if (b.bedragen.korting && b.bedragen.korting.korting_cent > 0) return { ok: false, reden: 'Korting nog niet ondersteund.' };
@@ -100,12 +115,6 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
   const regels: Regel[] = []; let som = 0;
   for (const r of b.regels) {
     if (new Set((r.extras ?? []).map(e => e.code)).size !== (r.extras ?? []).length) return { ok: false, reden: `Dubbele extra of keuze voor ${r.code}` };
-    // Nieuwste eigenaarcorrectie: Hula heeft geen bevestigde vegan variant, ook niet via een alias.
-    if (r.code === 'PV-F7B26912' && (r.extras ?? []).some(e =>
-      e.code === 'PVK-319766B2-1' || e.code === 'PVK-AD715B1F-1' ||
-      koppelingen.some(x => x.soort !== 'product' && x.externe_code.startsWith(r.code + '|') &&
-        x.externe_code.endsWith('|' + e.code) && (x.lightspeed_product_id === '1307820' || /\bvegan(?:istisch)?\b/i.test(x.naam)))
-    )) return { ok: false, reden: 'Hula is niet standaard vegan; er is geen door de eigenaar bevestigde vegan variant. Vegan-keuzes zijn niet toegestaan bij Klein of Groot.' };
     // Formaat: gerecht + keuze wordt precies 1x het afzonderlijke kassaproduct; toeslag niet nogmaals optellen.
     const formaten = (r.extras ?? []).map((e) => ({ e, f: k('formaat', formaatSleutel(r.code, e.code)) })).filter((x) => x.f);
     const gerechtHeeftFormaten = koppelingen.some((x) => x.soort === 'formaat' && x.keuze_verplicht !== false && x.externe_code.startsWith(r.code + '|'));
@@ -123,12 +132,12 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
     const extras: Regel['extras'] = [];
     let gastVerzoek: Regel['gast_verzoek'];
     for (const e of rest) {
-      const standaardVegan = e.code === 'PVK-AD715B1F-1' && (r.code === 'PV-6F37A149' || r.code === 'PV-3AC166C3');
+      const standaardVegan = STANDAARD_VEGAN[r.code]?.keuze === e.code;
       const bloemkoolGlutenvrij = r.code === 'PV-3AC166C3' && e.code === 'PVK-AD715B1F-2';
       if (standaardVegan || bloemkoolGlutenvrij) {
-        const doel = r.code === 'PV-6F37A149' ? ['2084809', 'V11'] : ['4705081', 'F76'];
-        if (b.vestiging !== '36864' || basis.soort !== 'product' || basis.lightspeed_product_id !== doel[0] || basis.lightspeed_plu !== doel[1] || e.aantal !== 1 || e.stukprijs_cent !== 0) {
-          return { ok: false, reden: `Dieetkeuze ${e.code} vereist het bevestigde product voor ${r.code} en één gratis keuze.` };
+        const doelen = bloemkoolGlutenvrij ? [['4705081', 'F76']] : STANDAARD_VEGAN[r.code].doelen;
+        if (b.vestiging !== '36864' || !doelen.some(([id, plu]) => basis!.lightspeed_product_id === id && basis!.lightspeed_plu === plu) || e.aantal !== 1 || e.stukprijs_cent !== 0) {
+          return { ok: false, reden: `Dieetkeuze ${e.code} vereist het bevestigde kassaproduct voor ${r.code} en één gratis keuze.` };
         }
         // Menukaart/eigenaar leidend; een gastverzoek is geen allergenenvrij-belofte.
         if (bloemkoolGlutenvrij) gastVerzoek = 'bloemkool_glutenvrij';
@@ -137,9 +146,10 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       const specifiek = koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code, basis.lightspeed_product_id));
       const kandidaten = specifiek.length ? specifiek : koppelingen.filter(x => x.soort === 'extra' && x.externe_code === extraSleutel(r.code, e.code));
       const x = kandidaten.length === 1 && kandidaten[0].actief ? kandidaten[0] : undefined;
-      if (!x) return { ok: false, reden: `Onbekende of niet toepasselijke extra voor ${r.code}: ${e.code}` };
-      if (Math.abs(x.prijs_cent - e.stukprijs_cent) > 1) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code}` };
-      if (e.aantal !== 1 || e.stukprijs_cent !== 0 || x.prijs_cent !== 0) return { ok: false, reden: `Betaalde of meervoudige extra ${e.code}: bezorg-btw en bedragopbouw niet bevestigd.` };
+      if (!x) return { ok: false, reden: GERICHTE_BLOKKADE[`${r.code}|${e.code}`] ?? `Onbekende of niet toepasselijke extra voor ${r.code} (kassaproduct ${basis.lightspeed_product_id}): ${e.code}` };
+      if (x.prijs_cent !== e.stukprijs_cent) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code} bij ${r.code}: kassa ${x.prijs_cent}, kreeg ${e.stukprijs_cent}` };
+      // Bewezen kassamodel: één keuze per portie; de toeslag telt per portie bovenop de basisprijs.
+      if (e.aantal !== 1) return { ok: false, reden: `Extra ${e.code} bij ${r.code} moet aantal 1 per portie hebben.` };
       if (r.code === 'PV-51FDF8F3' && e.code === 'PVK-456C0BDC-1') {
         if (b.vestiging !== '36864' || basis.lightspeed_product_id !== '1071041' || basis.lightspeed_plu !== 'Dv11' || x.lightspeed_product_id !== '263905') {
           return { ok: false, reden: 'Saté Glutenvrij vereist de bevestigde Saté Spicy Tahoe en echte Glutenvrij-optie.' };
@@ -200,13 +210,28 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
   betaalwijzeId: string | null; betaalwijzeTypeId?: string | null; klantId?: string | null; route?: 'customer_order' | 'establishment_order'; companyId?: string | null; klant?: unknown }) {
   const est = p.route === 'establishment_order';
   const note = gastVerzoekNotitie(p.regels, p.opmerking);
+  const toeslag = (r: GeprijsdeRegel) => r.extras.reduce((s, e) => s + e.aantal * e.stukprijs_cent, 0);
   if (!p.regels.length || p.regels.some(r => !Number.isFinite(r.netto_euro) || r.netto_euro < 0 ||
-    !Number.isFinite(r.bezorg_btw_pct) || !Array.isArray(r.kassa_modifiers) ||
+    !Number.isFinite(r.bezorg_btw_pct) || !Array.isArray(r.kassa_modifiers) || r.kassa_modifiers.length !== r.extras.length ||
     (r.gast_verzoek === 'tahoe_glutenvrij' && !r.kassa_modifiers.some(m => m.modifierValueId === 263905 && m.price === 0 && m.priceWithoutVat === 0)) ||
-    r.extras.some(e => e.stukprijs_cent !== 0)) ||
-    p.regels.reduce((s, r) => s + r.aantal * r.stukprijs_cent, 0) !== p.restaurant_cent) {
+    r.extras.some(e => e.aantal !== 1 || !r.kassa_modifiers.some(m => String(m.modifierValueId) === e.lightspeed_product_id && Math.round(m.price * 100) === e.stukprijs_cent))) ||
+    p.regels.reduce((s, r) => s + r.aantal * (r.stukprijs_cent + toeslag(r)), 0) !== p.restaurant_cent) {
     throw new Error('Geen volledig geverifieerde netto-/btw-gegevens voor het kassabericht.');
   }
+  // Een regel met betaalde keuze wordt per portie (amount 1) verstuurd: alleen dat patroon is in
+  // oorspronkelijke onlineorders aangetoond. Totaal per regel = basis + toeslagen, zoals op de kassabon.
+  const items = p.regels.flatMap((r) => {
+    const t = toeslag(r);
+    const regel = (amount: number) => ({
+      ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),
+      amount, unitPrice: r.stukprijs_cent / 100, totalPrice: (amount * (r.stukprijs_cent + t)) / 100,
+      unitPriceWithoutVat: r.netto_euro,
+      totalPriceWithoutVat: t ? regelEuro(amount * (r.stukprijs_cent + t) / 100 / (1 + r.bezorg_btw_pct / 100)) : regelEuro(amount * r.netto_euro),
+      modifiers: r.kassa_modifiers,
+      subitems: [],
+    });
+    return t ? Array.from({ length: r.aantal }, () => regel(1)) : [regel(r.aantal)];
+  });
   const betaling = p.betaalwijzeId ? { amount: p.restaurant_cent / 100, paymentTypeId: Number(p.betaalwijzeId), paymentTypeTypeId: p.betaalwijzeTypeId ? Number(p.betaalwijzeTypeId) : undefined, tip: 0 } : undefined;
   return {
     ...(p.klantId ? { customerId: Number(p.klantId) } : {}),
@@ -217,13 +242,7 @@ export function orderbericht(p: { referentie: string; bestelnummer?: string; oph
     deliveryDate: p.ophaaltijd,
     description: [p.bestelnummer ?? p.referentie, gastNaam({ klant: p.klant })].filter(Boolean).join(' — '),
     ...(note ? { note } : {}),
-    orderItems: p.regels.map((r) => ({
-      ...(est && r.lightspeed_plu ? { productPlu: r.lightspeed_plu } : { productId: Number(r.lightspeed_product_id) }),
-      amount: r.aantal, unitPrice: r.stukprijs_cent / 100, totalPrice: (r.aantal * r.stukprijs_cent) / 100,
-      unitPriceWithoutVat: r.netto_euro, totalPriceWithoutVat: regelEuro(r.aantal * r.netto_euro),
-      modifiers: r.kassa_modifiers,
-      subitems: [],
-    })),
+    orderItems: items,
     orderPayments: betaling ? [betaling] : undefined,
   };
 }
