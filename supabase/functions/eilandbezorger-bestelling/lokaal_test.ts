@@ -177,7 +177,7 @@ for (const scenario of ['toepasselijk', 'ontbreekt', 'verkeerde-prijs', 'tegenst
     const res = await post(b);
     assertEquals(res.status, scenario === 'toepasselijk' ? 201 : 422);
     assertEquals((await res.json()).status, scenario === 'toepasselijk' ? 'test_ok' : 'afgekeurd');
-    assertEquals(gets.length, scenario === 'betaald' ? 0 : 2);
+    assertEquals(gets.length, 2);
     assertEquals(t.externe_bestellingen[0].orderbericht, null);
     assertEquals(t.externe_bestelling_poging.length, 0);
     assertEquals(kassa.length, 0);

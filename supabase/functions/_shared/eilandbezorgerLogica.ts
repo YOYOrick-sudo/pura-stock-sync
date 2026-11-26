@@ -56,7 +56,7 @@ export const OphaaltijdSchema = z.object({
 });
 
 export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean; keuze_verplicht?: boolean; keuze_toeslag_cent?: number | null };
-export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; gast_verzoek?: 'bloemkool_glutenvrij' | 'tahoe_glutenvrij'; gratis_sauzen?: string[]; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
+export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; gast_verzoek?: 'bloemkool_glutenvrij' | 'tahoe_glutenvrij'; gratis_sauzen?: string[]; kanaal_prijs_cent?: number; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
 
 function sorteer(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sorteer);
@@ -105,6 +105,24 @@ export const STANDAARD_VEGAN: Record<string, { keuze: string; doelen: [string, s
  *  géén catalogusmodifier meesturen; alleen een regelgebonden keukeninstructie. Alleen bij een
  *  actieve gerecht/eindproductkoppeling met prijs 0. */
 export const GRATIS_SAUS: Record<string, string> = { '1625385': 'Sriracha', '1716435': 'Sambal' };
+/** Eigenaarsbesluit 26-11-2026: vaste Eilandbezorger-kanaalprijs voor 15 bieren (Karins CSV), alleen
+ *  Midsland en alleen bij exacte externe code + kassaproduct-ID + PLU. Kassamasterprijs blijft ongewijzigd. */
+export const KANAALPRIJS_BIER: Record<string, { id: string; plu: string; cent: number }> = {
+  'PV-5021B6B2': { id: '4230451', plu: 'B245', cent: 850 }, 'PV-A140C88A': { id: '4498884', plu: 'B247', cent: 850 },
+  'PV-5DC94609': { id: '5091677', plu: 'B275', cent: 825 }, 'PV-299A561F': { id: '5091670', plu: 'B272', cent: 825 },
+  'PV-45681D3B': { id: '5091671', plu: 'B273', cent: 350 }, 'PV-27960167': { id: '1057333', plu: 'B11', cent: 750 },
+  'PV-931BF294': { id: '3496341', plu: 'B223', cent: 825 }, 'PV-3A061DB3': { id: '4694400', plu: 'B250', cent: 600 },
+  'PV-C03F306C': { id: '3466274', plu: 'B219', cent: 600 }, 'PV-108DA217': { id: '1057337', plu: 'B14', cent: 500 },
+  'PV-41EA6A14': { id: '1407501', plu: 'B107', cent: 700 }, 'PV-5BA0FE2D': { id: '5106872', plu: 'B278', cent: 700 },
+  'PV-8F0C3732': { id: '3304177', plu: 'B209', cent: 700 }, 'PV-19299D37': { id: '4952012', plu: 'B266', cent: 650 },
+  'PV-E1AD5F8B': { id: '4792243', plu: 'B263', cent: 2300 },
+};
+export const kanaalPrijsVoor = (id: string, plu?: string | null) => Object.values(KANAALPRIJS_BIER).find(x => x.id === id && x.plu === plu)?.cent;
+/** Native kassakeuzes die Karin nog per product moet toewijzen; de catalogus-GET beslist, nooit de koppeling alleen. */
+export const NATIVE_TOEWIJZING: Record<string, string> = {
+  '5091637|1307819': 'Kokos-pompoensoep Mini (L24)', '4538641|1307819': 'Kokos-pompoensoep Middel (L14)', '3221352|1307819': 'Kokos-pompoensoep Groot (B191)',
+  '4094171|1307819': 'Paddenstoelenboter (F67)', '5091855|263905': 'Thai kip saté (F91)',
+};
 /** Keuzes zonder kassakeuze of eigenaarsbesluit krijgen een concrete reden in plaats van een gok. */
 const GERICHTE_BLOKKADE: Record<string, string> = {
   'PV-CE0EF3F3|PVK-456C0BDC-1': 'Bietenburger Glutenvrij: de kassa heeft voor dit product geen glutenvrij-keuze en de friet is niet glutenvrij; alleen betaald glutenvrij brood is bewezen. Handmatige beoordeling.',
@@ -132,6 +150,12 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       basis = f; stuk = r.stukprijs_cent + e.stukprijs_cent; rest = rest.filter((x) => x !== e);
     } else basis = k('product', r.code);
     if (!basis) return { ok: false, reden: `Onbekend product: ${r.code}` };
+    const kanaal = KANAALPRIJS_BIER[r.code];
+    if (kanaal) {
+      if (b.vestiging !== '36864' || basis.lightspeed_product_id !== kanaal.id || basis.lightspeed_plu !== kanaal.plu || basis.prijs_cent !== kanaal.cent || formaten.length) return { ok: false, reden: `Kanaalprijs ${r.code} vereist het bevestigde kassaproduct ${kanaal.plu}.` };
+      if (stuk !== kanaal.cent) return { ok: false, reden: `Prijs wijkt af voor ${r.code}: Eilandbezorger-kanaalprijs ${kanaal.cent}, kreeg ${stuk}` };
+      if (rest.length) return { ok: false, reden: `Geen extra’s toegestaan bij ${r.code}.` };
+    }
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
     let gastVerzoek: Regel['gast_verzoek'];
@@ -170,7 +194,7 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       som += e.aantal * e.stukprijs_cent * r.aantal;
     }
     som += r.aantal * stuk;
-    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras, ...(gastVerzoek ? { gast_verzoek: gastVerzoek } : {}), ...(sauzen.length ? { gratis_sauzen: sauzen } : {}) });
+    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras, ...(gastVerzoek ? { gast_verzoek: gastVerzoek } : {}), ...(sauzen.length ? { gratis_sauzen: sauzen } : {}), ...(kanaal ? { kanaal_prijs_cent: kanaal.cent } : {}) });
   }
   if (som !== b.bedragen.restaurant_cent) return { ok: false, reden: `Restaurantbedrag klopt niet: regels ${som}, opgegeven ${b.bedragen.restaurant_cent}` };
   return { ok: true, regels };

@@ -1,5 +1,5 @@
 import { geldigToken } from './lightspeedToken.ts';
-import type { Regel } from './eilandbezorgerLogica.ts';
+import { kanaalPrijsVoor, NATIVE_TOEWIJZING, type Regel } from './eilandbezorgerLogica.ts';
 
 export type KaartProduct = {
   id: number; visible: boolean; deliveryPrice?: number | null; deliveryPriceWithoutVat?: number | null;
@@ -16,9 +16,9 @@ const afronden = (n: number, precisie: number) => Math.round((n + Number.EPSILON
 export const regelEuro = (n: number) => afronden(n, 100);
 
 /** Alleen de gedocumenteerde bezorgvelden, niet stil terugvallen op een restaurantprijs. */
-export function bezorgPrijs(p: KaartProduct, cent: number, klassen: BtwKlasse[]) {
+export function bezorgPrijs(p: KaartProduct, cent: number, klassen: BtwKlasse[], kanaal = false) {
   if (!p.visible || !bedrag(p.deliveryPrice) || !Number.isInteger(cent) || cent < 0 ||
-    afronden(p.deliveryPrice, 100) !== p.deliveryPrice || Math.round(p.deliveryPrice * 100) !== cent) {
+    afronden(p.deliveryPrice, 100) !== p.deliveryPrice || (!kanaal && Math.round(p.deliveryPrice * 100) !== cent)) {
     throw new Error(`Actuele bezorgprijs ontbreekt of wijkt af voor product ${p.id}.`);
   }
   const matches = klassen.filter(k => k.id === p.deliveryTaxClass);
@@ -30,6 +30,16 @@ export function bezorgPrijs(p: KaartProduct, cent: number, klassen: BtwKlasse[])
   // bij verschillende afhaal- en bezorginstellingen is eerst een expliciet besluit nodig.
   if (p.takeawayTaxClass !== p.deliveryTaxClass || p.takeawayPrice !== p.deliveryPrice) {
     throw new Error(`Afhaal- en bezorgprijs/btw verschillen voor product ${p.id}; bestaand ordertype niet veilig.`);
+  }
+  if (kanaal) {
+    // Eigenaarsbesluit: vaste Eilandbezorger-kanaalprijs. Netto altijd uit de actuele klasse over
+    // het kanaalbruto; nooit het catalogusnetto van een afwijkend kassabruto overnemen.
+    if (p.takeawayPriceWithoutVat != null && p.deliveryPriceWithoutVat != null && Math.abs(p.takeawayPriceWithoutVat - p.deliveryPriceWithoutVat) > 0.000051) {
+      throw new Error(`Afhaal- en bezorgnettoprijs verschillen voor product ${p.id}.`);
+    }
+    const netto = afronden(cent / 100 / (1 + tarief / 100), 10000);
+    if (regelEuro(netto * (1 + tarief / 100)) !== cent / 100) throw new Error(`Kanaalprijs en btw spreken elkaar tegen voor product ${p.id}.`);
+    return { netto_euro: netto, bezorg_btw_pct: tarief };
   }
   const berekend = p.deliveryPrice / (1 + tarief / 100);
   // Ontbrekend netto mag alleen met de daadwerkelijk uitgelezen klasse/taxRate afgeleid worden.
@@ -51,10 +61,18 @@ export function prijsRegels(regels: Regel[], producten: KaartProduct[], klassen:
     if (!Number.isInteger(r.aantal) || r.aantal < 1 || !Array.isArray(r.extras)) throw new Error('Opgeslagen productaantal of extra’s ongeldig.');
     const matches = producten.filter(p => String(p.id) === r.lightspeed_product_id);
     if (matches.length !== 1) throw new Error(`Actueel kassaproduct ${r.lightspeed_product_id} ontbreekt of is dubbel.`);
-    const p = matches[0], prijs = bezorgPrijs(p, r.stukprijs_cent, klassen);
+    const p = matches[0];
+    if (r.kanaal_prijs_cent != null) {
+      const v = kanaalPrijsVoor(r.lightspeed_product_id, r.lightspeed_plu);
+      if (!v || v !== r.kanaal_prijs_cent || r.stukprijs_cent !== v || r.extras.length) throw new Error(`Kanaalprijs voor product ${p.id} is niet door de eigenaar bevestigd.`);
+    }
+    const prijs = bezorgPrijs(p, r.stukprijs_cent, klassen, r.kanaal_prijs_cent != null);
     const modifiers = r.extras.map(e => {
       const keuzes = (p.additions ?? []).flatMap(g => g.values.filter(v => String(v.id) === e.lightspeed_product_id).map(v => ({ g, v })));
-      if (keuzes.length !== 1) throw new Error(`Extra ${e.naam} is niet eenduidig aan product ${p.id} gekoppeld.`);
+      if (keuzes.length !== 1) {
+        const karin = NATIVE_TOEWIJZING[`${p.id}|${e.lightspeed_product_id}`];
+        throw new Error(karin ? `Actie Karin: native kassakeuze ${e.naam} (${e.lightspeed_product_id}) is nog niet toegewezen aan ${karin}; niet verzendbaar.` : `Extra ${e.naam} is niet eenduidig aan product ${p.id} gekoppeld.`);
+      }
       const { g, v } = keuzes[0];
       // Bewezen in oorspronkelijke onlineorders: modifier.price is de bruto toeslag per portie,
       // priceWithoutVat staat op 0 en unitPrice blijft de basisprijs. Kaartprijs moet exact kloppen.

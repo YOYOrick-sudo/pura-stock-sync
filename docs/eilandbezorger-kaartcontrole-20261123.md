@@ -83,3 +83,9 @@ Voor het gehele assortiment blijft de actuele Midsland-product- en groepskaart n
 FR01-voorbereiding is behouden en niet veranderd; de eerdere tijdelijke-knopopdracht wacht nog op plangoedkeuring. DE01 en overige eerdere taken vallen buiten deze opdracht.
 
 Standaardisatievoorstel: laat Karin bij iedere PVK-code de toegestane PV-productcodes en selectieregels aanleveren in één vaste keuzetabel.
+## 26-11-2026 — kanaalprijzen bier, glutenvrij brood, Thai saté
+- 15 bieren: vaste Eilandbezorger-kanaalprijs per externe code + product-ID + PLU (code `KANAALPRIJS_BIER`); netto uit actuele btw-klasse over kanaalbruto. Kassamasterprijzen ongewijzigd; 10 koppelbedragen bijgewerkt (B245, B247, B275, B272, B273, B11, B223, B14, B107, B266).
+- Glutenvrij brood 1307819 (€1 per portie): Labneh F79 en Hummus V11 werken. Kokossoep L24/L14/B191 en Paddenstoelenboter F67: koppeling klaar, maar **actie Karin**: native keuze 1307819 aan deze vier producten toewijzen. Tot dan afgekeurd met reden; daarna automatisch geldig (catalogus-GET beslist).
+- Thai kip saté F91/5091855 + Glutenvrij: **actie Karin**: native keuze 263905 toewijzen. Tot dan afgekeurd; geen vrije tekst.
+- Onbeslist: kokossoep Mini partner €5,50 vs kassa €4,70.
+- Testnummers: TEST-EB-KANAAL-*-20261126-100411 (14 stuks, 0 pogingen).

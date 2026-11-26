@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     let kassabericht = null;
     // Een reguliere optie is pas test_ok als de echte optie bij het definitieve product hoort.
     // Alleen gerichte catalogus-GETs; testmodus maakt nooit een kassabericht of verzendpoging.
-    if (regels && modus === 'test' && status === 'test_ok' && regels.some(r => r.extras.length > 0)) {
+    if (regels && modus === 'test' && status === 'test_ok' && regels.some(r => r.extras.length > 0 || r.kanaal_prijs_cent != null)) {
       const prijzen = await actuelePrijsRegels(admin, vestiging, regels);
       if ('fout' in prijzen) { status = 'afgekeurd'; reden = prijzen.fout; }
     }
