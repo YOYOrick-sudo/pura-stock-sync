@@ -56,7 +56,7 @@ export const OphaaltijdSchema = z.object({
 });
 
 export type Koppeling = { soort: 'product' | 'extra' | 'formaat'; lightspeed_plu?: string | null; externe_code: string; lightspeed_product_id: string; naam: string; prijs_cent: number; actief: boolean; keuze_verplicht?: boolean; keuze_toeslag_cent?: number | null };
-export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; gast_verzoek?: 'bloemkool_glutenvrij' | 'tahoe_glutenvrij'; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
+export type Regel = { lightspeed_product_id: string; lightspeed_plu?: string | null; naam: string; aantal: number; stukprijs_cent: number; gast_verzoek?: 'bloemkool_glutenvrij' | 'tahoe_glutenvrij'; gratis_sauzen?: string[]; extras: { lightspeed_product_id: string; naam: string; aantal: number; stukprijs_cent: number }[] };
 
 function sorteer(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sorteer);
@@ -101,6 +101,10 @@ export const STANDAARD_VEGAN: Record<string, { keuze: string; doelen: [string, s
   'PV-CE0EF3F3': { keuze: 'PVK-319766B2-1', doelen: [['4499170', 'BPB4'], ['4499175', 'BPB6']] },
   'PV-7B1071AD': { keuze: 'PVK-319766B2-1', doelen: [['2843422', 'F47']] },
 };
+/** Eigenaarsbesluit: extra Sriracha/Sambal gratis waar aangeboden. De kassa-optie kost €0,50, dus
+ *  géén catalogusmodifier meesturen; alleen een regelgebonden keukeninstructie. Alleen bij een
+ *  actieve gerecht/eindproductkoppeling met prijs 0. */
+export const GRATIS_SAUS: Record<string, string> = { '1625385': 'Sriracha', '1716435': 'Sambal' };
 /** Keuzes zonder kassakeuze of eigenaarsbesluit krijgen een concrete reden in plaats van een gok. */
 const GERICHTE_BLOKKADE: Record<string, string> = {
   'PV-CE0EF3F3|PVK-456C0BDC-1': 'Bietenburger Glutenvrij: de kassa heeft voor dit product geen glutenvrij-keuze en de friet is niet glutenvrij; alleen betaald glutenvrij brood is bewezen. Handmatige beoordeling.',
@@ -131,6 +135,7 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
     let gastVerzoek: Regel['gast_verzoek'];
+    const sauzen: string[] = [];
     for (const e of rest) {
       const standaardVegan = STANDAARD_VEGAN[r.code]?.keuze === e.code;
       const bloemkoolGlutenvrij = r.code === 'PV-3AC166C3' && e.code === 'PVK-AD715B1F-2';
@@ -148,6 +153,11 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       const x = kandidaten.length === 1 && kandidaten[0].actief ? kandidaten[0] : undefined;
       if (!x) return { ok: false, reden: GERICHTE_BLOKKADE[`${r.code}|${e.code}`] ?? `Onbekende of niet toepasselijke extra voor ${r.code} (kassaproduct ${basis.lightspeed_product_id}): ${e.code}` };
       if (x.prijs_cent !== e.stukprijs_cent) return { ok: false, reden: `Prijs wijkt af voor extra ${e.code} bij ${r.code}: kassa ${x.prijs_cent}, kreeg ${e.stukprijs_cent}` };
+      if (GRATIS_SAUS[x.lightspeed_product_id] && x.prijs_cent === 0) {
+        if (e.aantal !== 1 || b.vestiging !== '36864') return { ok: false, reden: `Gratis saus ${e.code} bij ${r.code} moet aantal 1 per portie hebben.` };
+        sauzen.push(GRATIS_SAUS[x.lightspeed_product_id]);
+        continue;
+      }
       // Bewezen kassamodel: één keuze per portie; de toeslag telt per portie bovenop de basisprijs.
       if (e.aantal !== 1) return { ok: false, reden: `Extra ${e.code} bij ${r.code} moet aantal 1 per portie hebben.` };
       if (r.code === 'PV-51FDF8F3' && e.code === 'PVK-456C0BDC-1') {
@@ -160,7 +170,7 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       som += e.aantal * e.stukprijs_cent * r.aantal;
     }
     som += r.aantal * stuk;
-    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras, ...(gastVerzoek ? { gast_verzoek: gastVerzoek } : {}) });
+    regels.push({ lightspeed_product_id: basis.lightspeed_product_id, lightspeed_plu: basis.lightspeed_plu ?? null, naam: basis.naam, aantal: r.aantal, stukprijs_cent: stuk, extras, ...(gastVerzoek ? { gast_verzoek: gastVerzoek } : {}), ...(sauzen.length ? { gratis_sauzen: sauzen } : {}) });
   }
   if (som !== b.bedragen.restaurant_cent) return { ok: false, reden: `Restaurantbedrag klopt niet: regels ${som}, opgegeven ${b.bedragen.restaurant_cent}` };
   return { ok: true, regels };
@@ -196,11 +206,14 @@ export const centen = (euro: number) => Math.round(euro * 100);
 /** Alleen gevalideerde regelgebonden verzoeken; originele gastnotitie nooit trimmen/herschrijven. */
 export function gastVerzoekNotitie(regels: Regel[], opmerking?: string): string | undefined {
   const verzoeken = regels.flatMap((r, index) => {
-    if (r.gast_verzoek === undefined) return [];
+    const saus = (r.gratis_sauzen ?? []);
+    if (saus.length && (!Number.isInteger(r.aantal) || r.aantal < 1 || saus.some(x => !Object.values(GRATIS_SAUS).includes(x)) || new Set(saus).size !== saus.length)) throw new Error('Sausinstructie niet veilig aan een bestelregel gekoppeld.');
+    const sausRegel = saus.length ? [`Regel ${index + 1} (${r.aantal}×) – ${r.naam} – extra saus (gratis): ${saus.join(' + ')}`] : [];
+    if (r.gast_verzoek === undefined) return sausRegel;
     const bloemkool = r.gast_verzoek === 'bloemkool_glutenvrij' && r.lightspeed_product_id === '4705081' && r.lightspeed_plu === 'F76';
     const tahoe = r.gast_verzoek === 'tahoe_glutenvrij' && r.lightspeed_product_id === '1071041' && r.lightspeed_plu === 'Dv11' && r.extras.some(e => e.lightspeed_product_id === '263905' && e.aantal === 1 && e.stukprijs_cent === 0);
     if ((!bloemkool && !tahoe) || !Number.isInteger(r.aantal) || r.aantal < 1) throw new Error('Dieetverzoek niet veilig aan een bestelregel gekoppeld; handmatige keukencontrole vereist.');
-    return [`Regel ${index + 1} (${r.aantal}×) – ${bloemkool ? 'Geroosterde bloemkool – gast vraagt glutenvrij' : 'Saté Spicy Tahoe – glutenvrij verzocht, zonder gefruite uitjes'}`];
+    return [...sausRegel, `Regel ${index + 1} (${r.aantal}×) – ${bloemkool ? 'Geroosterde bloemkool – gast vraagt glutenvrij' : 'Saté Spicy Tahoe – glutenvrij verzocht, zonder gefruite uitjes'}`];
   });
   return verzoeken.length ? (opmerking ? opmerking + '\n\n' : '') + verzoeken.join('\n') : opmerking;
 }

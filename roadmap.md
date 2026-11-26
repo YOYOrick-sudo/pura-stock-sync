@@ -30,3 +30,8 @@
 - [x] Hula/Biet/Tom Kha Vegan informatief; betaalde sauzen/brood bewezen en vrijgegeven; drankcontrole
 - [ ] Open (eigenaar/Karin): Bietenburger- en Hummus-Glutenvrij-vinkje, Lamsburger glutenvrij brood, appelsap €4 op EB-kaart
 - [ ] Planner `eilandbezorger-ronde` nog op oude gedeelde code (betaalde opties blijven daar dicht) tot afzonderlijke uitrol
+
+## 26-11 Eilandbezorger gratis sauzen + kaartcontrole
+- [x] Sriracha/Sambal gratis (12 Midsland-rijen op 0), als keukeninstructie in direct én gepland kassabericht; bestelling/beheer/ronde uitgerold
+- [x] Cron-sleutel heeft geen toegang meer tot kassa_inspectie
+- [ ] Kaartbesluiten Yorick/Karin: 13 prijsverschillen, Jever Fun 0.0% ontbreekt, Funky Falcon 0.5% koppeling inactief, soep Klein €5,50 vs kassa €4,70

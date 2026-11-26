@@ -9,7 +9,7 @@ import { geldigToken } from '../_shared/lightspeedToken.ts';
 import { meld, overgang, teruglezen, verzend } from '../_shared/eilandbezorgerVerzend.ts';
 import { EERSTE_PROEF, TWEEDE_PROEF, DERDE_PROEF, VIERDE_PROEF, VIJFDE_PROEF, ZESDE_PROEF, ZEVENDE_PROEF, FRIET_PROEF, isProef, PROEF_REFERENTIE } from '../_shared/eilandbezorgerProef.ts';
 import { gingerBeerProef, hervatGingerBeerProef } from './proef.ts';
-import { kassaInspectie } from './inspectie.ts';
+import { kassaInspectie, magKassaInspectie } from './inspectie.ts';
 
 const functieHeaders = { ...corsHeaders, 'X-Pura-Kassa-Schema': KASSA_SCHEMA };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...functieHeaders, 'Content-Type': 'application/json' } });
@@ -124,10 +124,6 @@ Deno.serve(async (req) => {
       if (!ok) return json({ fout: 'niet toegestaan' }, 401);
       return json(await ronde(admin));
     }
-    // Alleen-lezen kassabewijs: eigenaar, of de server-side cron-sleutel voor geautoriseerde nacontrole.
-    if (a.actie === 'kassa_inspectie' && cron.length > 0 && req.headers.get('x-sync-token') === cron) {
-      return json(await kassaInspectie(admin, a));
-    }
     if (!auth.startsWith('Bearer ')) return json({ fout: 'niet ingelogd' }, 401);
     const { data: u } = await createClient(url, anon, { global: { headers: { Authorization: auth } } }).auth.getUser();
     if (!u?.user) return json({ fout: 'niet ingelogd' }, 401);
@@ -147,7 +143,8 @@ Deno.serve(async (req) => {
       return json(await kassaInstellingen(admin, a.alleen_betaalwijzen === true));
     }
     if (a.actie === 'kassa_inspectie') {
-      if (!eigenaar) return json({ fout: 'alleen eigenaar' }, 403);
+      // Alleen eigenaar/admin met eigen sessie; de cron-sleutel geeft hier nooit toegang.
+      if (!magKassaInspectie(rollen ?? [])) return json({ fout: 'alleen eigenaar' }, 403);
       return json(await kassaInspectie(admin, a));
     }
     if (a.actie === 'kaart') {

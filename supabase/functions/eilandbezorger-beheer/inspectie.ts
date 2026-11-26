@@ -101,3 +101,6 @@ export async function kassaInspectie(admin: any, p: { soort: 'kaart' | 'orders' 
   }
   return { merchant_id: '36864', bon_gevonden: false, aanvragen };
 }
+
+/** Toegang uitsluitend via actieve owner/admin-rol van de ingelogde gebruiker. */
+export const magKassaInspectie = (rollen: { role?: string }[]) => rollen.some(r => r.role === 'owner' || r.role === 'admin');

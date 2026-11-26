@@ -12,8 +12,8 @@ const kaart = (id: number, bruto: number, additions: KaartProduct['additions']):
 const KAART = [kaart(3278962, 26, saus), kaart(5091636, 7.2, [brood]), kaart(2084809, 10.8, [brood]), kaart(4499175, 22.5, [brood, ...saus]), kaart(3370275, 22.5, saus), kaart(3467557, 3.9, [])];
 const kop: Koppeling[] = [
   { soort: 'formaat', externe_code: 'PV-FB9B6AE8|PVK-B6B834AB-2', lightspeed_product_id: '3278962', lightspeed_plu: 'B208', naam: 'Uluwatu Groot', prijs_cent: 2600, actief: true },
-  { soort: 'extra', externe_code: 'PV-FB9B6AE8|3278962|PVK-050E53CA-1', lightspeed_product_id: '1625385', naam: 'Sriracha', prijs_cent: 50, actief: true },
-  { soort: 'extra', externe_code: 'PV-FB9B6AE8|3278962|PVK-050E53CA-2', lightspeed_product_id: '1716435', naam: 'Sambal', prijs_cent: 50, actief: true },
+  { soort: 'extra', externe_code: 'PV-FB9B6AE8|3278962|PVK-050E53CA-1', lightspeed_product_id: '1625385', naam: 'Sriracha', prijs_cent: 0, actief: true },
+  { soort: 'extra', externe_code: 'PV-FB9B6AE8|3278962|PVK-050E53CA-2', lightspeed_product_id: '1716435', naam: 'Sambal', prijs_cent: 0, actief: true },
   { soort: 'formaat', externe_code: 'PV-6208BFEF|PVK-6DE6849B-2', lightspeed_product_id: '5091636', lightspeed_plu: 'L23', naam: 'Vissoep Middel', prijs_cent: 720, actief: true },
   { soort: 'extra', externe_code: 'PV-6208BFEF|5091636|PVK-DBE8A359-1', lightspeed_product_id: '1307819', naam: 'Glutenvrij brood', prijs_cent: 100, actief: true },
   { soort: 'product', externe_code: 'PV-6F37A149', lightspeed_product_id: '2084809', lightspeed_plu: 'V11', naam: 'Loaded Hummus', prijs_cent: 1080, actief: true },
@@ -25,20 +25,43 @@ const e = (code: string, stukprijs_cent = 0, aantal = 1) => ({ code, aantal, stu
 const best = (regels: Bestelling['regels'], restaurant_cent: number): Bestelling => ({ versie: 1, modus: 'test', bestelnummer: 'LOKAAL-BETAALD', vestiging: '36864', ophaaltijd: '2026-11-25T18:00:00+01:00',
   klant: { naam: 'Fictief' }, regels, bedragen: { restaurant_cent, bezorgkosten_cent: 0, fooi_cent: 0, korting: null }, betaling: { wijze: 'vooraf_betaald' } });
 const bon = (b: Bestelling) => { const c = controleer(b, kop); if (!c.ok) throw new Error(c.reden);
-  return orderbericht({ referentie: 'LOKAAL', ophaaltijd: b.ophaaltijd, regels: prijsRegels(c.regels, KAART, TEST_KLASSEN), restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: '285794', betaalwijzeTypeId: '4' }); };
+  return orderbericht({ referentie: 'LOKAAL', ophaaltijd: b.ophaaltijd, opmerking: b.opmerking, regels: prijsRegels(c.regels, KAART, TEST_KLASSEN), restaurant_cent: b.bedragen.restaurant_cent, betaalwijzeId: '285794', betaalwijzeTypeId: '4' }); };
 
 Deno.test('Uluwatu Groot zonder saus: €26, geen modifiers', () => {
   const m = bon(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850)] }], 2600));
   assertEquals(m.orderItems.map(i => [i.unitPrice, i.totalPrice, i.modifiers.length]), [[26, 26, 0]]);
 });
-for (const [code, id] of [['PVK-050E53CA-1', 1625385], ['PVK-050E53CA-2', 1716435]] as const) Deno.test(`Uluwatu Groot + ${code}: €26,50`, () => {
-  const m = bon(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e(code, 50)] }], 2650));
-  assertEquals(m.orderItems[0].modifiers.map(x => [x.modifierValueId, x.price, x.priceWithoutVat]), [[id, 0.5, 0]]);
-  assertEquals(m.orderPayments?.[0].amount, 26.5);
+for (const [code, naam] of [['PVK-050E53CA-1', 'Sriracha'], ['PVK-050E53CA-2', 'Sambal']] as const) Deno.test(`Uluwatu Groot + gratis ${naam}: €26, geen €0,50-modifier, instructie op regel`, () => {
+  const m = bon(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e(code)] }], 2600));
+  assertEquals([m.orderItems[0].totalPrice, m.orderItems[0].modifiers.length, m.orderPayments?.[0].amount], [26, 0, 26]);
+  assertEquals(m.note, `Regel 1 (1×) – Uluwatu Groot – extra saus (gratis): ${naam}`);
 });
-Deno.test('Uluwatu Groot + Sriracha + Sambal: zelfde opbouw als kassabon (26 + 0,50 + 0,50 = 27; netto 24,77)', () => {
-  const m = bon(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1', 50), e('PVK-050E53CA-2', 50)] }], 2700));
-  assertEquals([m.orderItems[0].unitPrice, m.orderItems[0].totalPrice, m.orderItems[0].totalPriceWithoutVat, m.orderPayments?.[0].amount], [26, 27, 24.77, 27]);
+Deno.test('Uluwatu Groot ×2 + Sriracha + Sambal gratis: €52, beide sauzen op juiste regel, gastnotitie behouden', () => {
+  const m = bon({ ...best([{ code: 'PV-FB9B6AE8', aantal: 2, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1'), e('PVK-050E53CA-2')] }], 5200), opmerking: 'Bel aan' });
+  assertEquals([m.orderItems.length, m.orderItems[0].amount, m.orderItems[0].totalPrice, m.orderPayments?.[0].amount], [1, 2, 52, 52]);
+  assertEquals(m.note, 'Bel aan\n\nRegel 1 (2×) – Uluwatu Groot – extra saus (gratis): Sriracha + Sambal');
+});
+Deno.test('Verouderde sausprijs €0,50 afgewezen; saus bij verkeerd gerecht afgewezen', () => {
+  const r = controleer(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1', 50)] }], 2650), kop);
+  assertEquals(r.ok === false && r.reden.includes('kassa 0, kreeg 50'), true);
+  assertEquals(controleer(best([{ code: 'PV-6F37A149', aantal: 1, stukprijs_cent: 1080, extras: [e('PVK-050E53CA-1')] }], 1080), kop).ok, false);
+});
+Deno.test('Gratis saus + betaald brood (Bietenburger met friet): €23,50, alleen broodmodifier', () => {
+  const k: Koppeling[] = [...kop, { soort: 'formaat', externe_code: 'PV-CE0EF3F3|PVK-174BACEE-1', lightspeed_product_id: '4499175', lightspeed_plu: 'BPB6', naam: 'Bietenburger friet', prijs_cent: 2250, actief: true, keuze_verplicht: false, keuze_toeslag_cent: 700 } as Koppeling,
+    { soort: 'extra', externe_code: 'PV-CE0EF3F3|4499175|PVK-174BACEE-3', lightspeed_product_id: '1716435', naam: 'Sambal', prijs_cent: 0, actief: true },
+    { soort: 'extra', externe_code: 'PV-CE0EF3F3|4499175|PVK-DBE8A359-1', lightspeed_product_id: '1307819', naam: 'Glutenvrij brood', prijs_cent: 100, actief: true }];
+  const b = best([{ code: 'PV-CE0EF3F3', aantal: 1, stukprijs_cent: 1550, extras: [e('PVK-DBE8A359-1', 100), e('PVK-174BACEE-1', 700), e('PVK-174BACEE-3')] }], 2350);
+  const c = controleer(b, k); if (!c.ok) throw new Error(c.reden);
+  const m = orderbericht({ referentie: 'L', ophaaltijd: b.ophaaltijd, regels: prijsRegels(c.regels, KAART, TEST_KLASSEN), restaurant_cent: 2350, betaalwijzeId: '285794', betaalwijzeTypeId: '4' });
+  assertEquals([m.orderItems[0].totalPrice, m.orderItems[0].modifiers.map(x => [x.modifierValueId, x.price]), m.orderPayments?.[0].amount], [23.5, [[1307819, 1]], 23.5]);
+  assertEquals(m.note, 'Regel 1 (1×) – Bietenburger friet – extra saus (gratis): Sambal');
+});
+Deno.test('Uluwatu Vegan blijft echte modifier; Hummus Vegan alleen informatief', () => {
+  const k: Koppeling[] = [...kop, { soort: 'extra', externe_code: 'PV-FB9B6AE8|3278962|PVK-319766B2-1', lightspeed_product_id: '999001', naam: 'Vegan', prijs_cent: 0, actief: true }];
+  const u = controleer(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-319766B2-1')] }], 2600), k);
+  assertEquals(u.ok && u.regels[0].extras.map(x => x.lightspeed_product_id), ['999001']);
+  const h = controleer(best([{ code: 'PV-6F37A149', aantal: 1, stukprijs_cent: 1080, extras: [e('PVK-AD715B1F-1')] }], 1080), k);
+  assertEquals(h.ok && h.regels[0].extras, []);
 });
 Deno.test('Vissoep Middel ×2 met glutenvrij brood: twee porties van €8,20, toeslag exact één keer per portie', () => {
   const m = bon(best([{ code: 'PV-6208BFEF', aantal: 2, stukprijs_cent: 550, extras: [e('PVK-6DE6849B-2', 170), e('PVK-DBE8A359-1', 100)] }], 1640));
@@ -52,12 +75,7 @@ Deno.test('Loaded Hummus: zonder broodwissel, met broodwissel, twee porties', ()
 });
 Deno.test('Restaurantbedrag zonder toeslag blokkeert; dubbele saus blokkeert', () => {
   assertEquals(controleer(best([{ code: 'PV-6F37A149', aantal: 1, stukprijs_cent: 1080, extras: [e('PVK-DBE8A359-1', 100)] }], 1080), kop).ok, false);
-  assertEquals(controleer(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1', 50), e('PVK-050E53CA-1', 50)] }], 2700), kop).ok, false);
-});
-Deno.test('Twee waarden in een modifiergroep met maximum 1 blokkeren bij prijsopbouw', () => {
-  const c = controleer(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1', 50), e('PVK-050E53CA-2', 50)] }], 2700), kop); if (!c.ok) throw new Error(c.reden);
-  const een = [kaart(3278962, 26, [{ ...saus[0], values: [...saus[0].values, saus[1].values[0]] }])];
-  assertThrows(() => prijsRegels(c.regels, een, TEST_KLASSEN));
+  assertEquals(controleer(best([{ code: 'PV-FB9B6AE8', aantal: 1, stukprijs_cent: 1750, extras: [e('PVK-B6B834AB-2', 850), e('PVK-050E53CA-1'), e('PVK-050E53CA-1')] }], 2600), kop).ok, false);
 });
 Deno.test('Kassamodifier met andere prijs dan aangeleverd blokkeert', () => {
   const c = controleer(best([{ code: 'PV-6F37A149', aantal: 1, stukprijs_cent: 1080, extras: [e('PVK-DBE8A359-1', 100)] }], 1180), kop); if (!c.ok) throw new Error(c.reden);
