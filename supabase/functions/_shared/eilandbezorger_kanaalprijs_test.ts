@@ -65,11 +65,11 @@ Deno.test('Labneh brood met verkeerde prijs of totaal afgewezen', () => {
   assertEquals(controleer(best([r('PV-85B02FF8', 1080, 2, [{ code: 'PVK-DBE8A359-1', aantal: 1, stukprijs_cent: 100 }])], 2260), kop).ok, false);
 });
 Deno.test('Paddenstoelenboter: native brood nog niet toegewezen → blokkade met actie Karin', () => {
-  assertThrows(() => bon(best([r('PV-586BEAF0', 900, 1, [{ code: 'PVK-DBE8A359-1', aantal: 1, stukprijs_cent: 100 }])], 1000)), Error, 'Actie Karin');
+  assertThrows(() => bon(best([r('PV-586BEAF0', 900, 1, [{ code: 'PVK-DBE8A359-1', aantal: 1, stukprijs_cent: 100 }])], 1000)), Error, 'Actie Pura Midsland');
 });
 Deno.test('Thai saté: native Glutenvrij ontbreekt → blokkade; aanwezig → echte modifier 263905, geen notitie', () => {
   const b = best([r('PV-DDB41ADC', 970, 1, [{ code: 'PVK-456C0BDC-1', aantal: 1, stukprijs_cent: 0 }])], 970);
-  assertThrows(() => bon(b), Error, 'Actie Karin');
+  assertThrows(() => bon(b), Error, 'Actie Pura Midsland');
   const kaart = KAART.map(p => p.id === 5091855 ? { ...p, additions: [gv] } : p);
   const m = bon(b, kaart);
   assertEquals([m.orderItems[0].modifiers[0].modifierValueId, m.note], [263905, undefined]);

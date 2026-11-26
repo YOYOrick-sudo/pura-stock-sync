@@ -64,14 +64,14 @@ export function prijsRegels(regels: Regel[], producten: KaartProduct[], klassen:
     const p = matches[0];
     if (r.kanaal_prijs_cent != null) {
       const v = kanaalPrijsVoor(r.lightspeed_product_id, r.lightspeed_plu);
-      if (!v || v !== r.kanaal_prijs_cent || r.stukprijs_cent !== v || r.extras.length) throw new Error(`Kanaalprijs voor product ${p.id} is niet door de eigenaar bevestigd.`);
+      if (!v || v.cent !== r.kanaal_prijs_cent || r.stukprijs_cent !== v.cent || (r.extras.length && !v.extras)) throw new Error(`Kanaalprijs voor product ${p.id} is niet door de eigenaar bevestigd.`);
     }
     const prijs = bezorgPrijs(p, r.stukprijs_cent, klassen, r.kanaal_prijs_cent != null);
     const modifiers = r.extras.map(e => {
       const keuzes = (p.additions ?? []).flatMap(g => g.values.filter(v => String(v.id) === e.lightspeed_product_id).map(v => ({ g, v })));
       if (keuzes.length !== 1) {
         const karin = NATIVE_TOEWIJZING[`${p.id}|${e.lightspeed_product_id}`];
-        throw new Error(karin ? `Actie Karin: native kassakeuze ${e.naam} (${e.lightspeed_product_id}) is nog niet toegewezen aan ${karin}; niet verzendbaar.` : `Extra ${e.naam} is niet eenduidig aan product ${p.id} gekoppeld.`);
+        throw new Error(karin ? `Actie Pura Midsland: native kassakeuze ${e.naam} (${e.lightspeed_product_id}) is nog niet toegewezen aan ${karin}; niet verzendbaar.` : `Extra ${e.naam} is niet eenduidig aan product ${p.id} gekoppeld.`);
       }
       const { g, v } = keuzes[0];
       // Bewezen in oorspronkelijke onlineorders: modifier.price is de bruto toeslag per portie,

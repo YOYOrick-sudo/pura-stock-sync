@@ -117,7 +117,18 @@ export const KANAALPRIJS_BIER: Record<string, { id: string; plu: string; cent: n
   'PV-8F0C3732': { id: '3304177', plu: 'B209', cent: 700 }, 'PV-19299D37': { id: '4952012', plu: 'B266', cent: 650 },
   'PV-E1AD5F8B': { id: '4792243', plu: 'B263', cent: 2300 },
 };
-export const kanaalPrijsVoor = (id: string, plu?: string | null) => Object.values(KANAALPRIJS_BIER).find(x => x.id === id && x.plu === plu)?.cent;
+/** Eigenaarsbesluit 26-11-2026: zes overige geverifieerde Eilandbezorger-kanaalprijzen (Midsland). Sleutel is
+ *  de externe productcode, of code|keuzecode voor een afzonderlijk kassaformaat. Alleen klein-formaat soepen;
+ *  middel/groot behouden de gewone kassaprijscontrole. `extras`: bestaande gekoppelde keuzes blijven toegestaan. */
+export const KANAALPRIJS_OVERIG: Record<string, { id: string; plu: string; cent: number; extras?: true }> = {
+  'PV-128F2537': { id: '1515970', plu: 'V7', cent: 800 }, 'PV-2DEE5665': { id: '1071040', plu: 'Dv10', cent: 1100 },
+  'PV-0EB4E84F': { id: '4705082', plu: 'F77', cent: 1150 }, 'PV-6593C2EE': { id: '2380389', plu: 'Z25', cent: 550 },
+  'PV-AC462190|PVK-6DE6849B-1': { id: '5091637', plu: 'L24', cent: 550, extras: true },
+  'PV-6208BFEF|PVK-6DE6849B-1': { id: '3278199', plu: 'B194', cent: 550, extras: true },
+};
+export const KANAALPRIJS: Record<string, { id: string; plu: string; cent: number; extras?: true }> = { ...KANAALPRIJS_BIER, ...KANAALPRIJS_OVERIG };
+/** Opgeslagen regels (ook oude bierregels) worden teruggevonden op kassaproduct-ID + PLU; nooit op naam. */
+export const kanaalPrijsVoor = (id: string, plu?: string | null) => Object.values(KANAALPRIJS).find(x => x.id === id && x.plu === plu);
 /** Native kassakeuzes die Karin nog per product moet toewijzen; de catalogus-GET beslist, nooit de koppeling alleen. */
 export const NATIVE_TOEWIJZING: Record<string, string> = {
   '5091637|1307819': 'Kokos-pompoensoep Mini (L24)', '4538641|1307819': 'Kokos-pompoensoep Middel (L14)', '3221352|1307819': 'Kokos-pompoensoep Groot (B191)',
@@ -150,11 +161,12 @@ export function controleer(b: Bestelling, koppelingen: Koppeling[]): { ok: true;
       basis = f; stuk = r.stukprijs_cent + e.stukprijs_cent; rest = rest.filter((x) => x !== e);
     } else basis = k('product', r.code);
     if (!basis) return { ok: false, reden: `Onbekend product: ${r.code}` };
-    const kanaal = KANAALPRIJS_BIER[r.code];
+    const kanaalSleutel = formaten.length ? formaatSleutel(r.code, formaten[0].e.code) : r.code;
+    const kanaal = KANAALPRIJS[kanaalSleutel];
     if (kanaal) {
-      if (b.vestiging !== '36864' || basis.lightspeed_product_id !== kanaal.id || basis.lightspeed_plu !== kanaal.plu || basis.prijs_cent !== kanaal.cent || formaten.length) return { ok: false, reden: `Kanaalprijs ${r.code} vereist het bevestigde kassaproduct ${kanaal.plu}.` };
-      if (stuk !== kanaal.cent) return { ok: false, reden: `Prijs wijkt af voor ${r.code}: Eilandbezorger-kanaalprijs ${kanaal.cent}, kreeg ${stuk}` };
-      if (rest.length) return { ok: false, reden: `Geen extra’s toegestaan bij ${r.code}.` };
+      if (b.vestiging !== '36864' || basis.lightspeed_product_id !== kanaal.id || basis.lightspeed_plu !== kanaal.plu || basis.prijs_cent !== kanaal.cent || (!formaten.length) !== (kanaalSleutel === r.code)) return { ok: false, reden: `Kanaalprijs ${kanaalSleutel} vereist het bevestigde kassaproduct ${kanaal.plu}.` };
+      if (stuk !== kanaal.cent) return { ok: false, reden: `Prijs wijkt af voor ${kanaalSleutel}: Eilandbezorger-kanaalprijs ${kanaal.cent}, kreeg ${stuk}` };
+      if (rest.length && !kanaal.extras) return { ok: false, reden: `Geen extra’s toegestaan bij ${r.code}.` };
     }
     if (Math.abs(basis.prijs_cent - stuk) > 1) return { ok: false, reden: `Prijs wijkt af voor ${r.code}${formaten.length ? ' + ' + formaten[0].e.code : ''}: kassa ${basis.prijs_cent}, kreeg ${stuk}` };
     const extras: Regel['extras'] = [];
